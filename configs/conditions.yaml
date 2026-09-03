@@ -1,0 +1,129 @@
+registry_version: "0.1.0"
+
+selection_policy:
+  status: provisional
+  required_years: [2023, 2024]
+  minimum_national_weighted_prevalence: 0.02
+  maximum_analytic_missing_fraction: 0.10
+  require_comparable_core_measure: true
+
+conditions:
+  - canonical_name: ISCHEMIC_HEART_DISEASE
+    label: Coronary heart disease or myocardial infarction
+    source_by_year:
+      "2023": _MICHD
+      "2024": _MICHD
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: STROKE
+    label: Stroke
+    source_by_year:
+      "2023": CVDSTRK3
+      "2024": CVDSTRK3
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: CURRENT_ASTHMA
+    label: Current asthma
+    source_by_year:
+      "2023": _CASTHM1
+      "2024": _CASTHM1
+    coding:
+      type: binary
+      positive_values: [2]
+      negative_values: [1]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: SKIN_CANCER
+    label: Skin cancer
+    source_by_year:
+      "2023": CHCSCNC1
+      "2024": CHCSCNC1
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: OTHER_CANCER
+    label: Cancer other than skin cancer
+    source_by_year:
+      "2023": CHCOCNC1
+      "2024": CHCOCNC1
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: COPD
+    label: COPD, emphysema, or chronic bronchitis
+    source_by_year:
+      "2023": CHCCOPD3
+      "2024": CHCCOPD3
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: DEPRESSIVE_DISORDER
+    label: Depressive disorder
+    source_by_year:
+      "2023": ADDEPEV3
+      "2024": ADDEPEV3
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: KIDNEY_DISEASE
+    label: Kidney disease excluding stones and infections
+    source_by_year:
+      "2023": CHCKDNY2
+      "2024": CHCKDNY2
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: ARTHRITIS
+    label: Arthritis
+    source_by_year:
+      "2023": HAVARTH4
+      "2024": HAVARTH4
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2]
+      missing_values: [7, 9]
+    primary: true
+
+  - canonical_name: DIABETES
+    label: Diabetes excluding gestational diabetes and prediabetes
+    source_by_year:
+      "2023": DIABETE4
+      "2024": DIABETE4
+    coding:
+      type: binary
+      positive_values: [1]
+      negative_values: [2, 3, 4]
+      missing_values: [7, 9]
+    primary: true

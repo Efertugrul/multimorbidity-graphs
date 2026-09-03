@@ -1,0 +1,27 @@
+estimator:
+  name: weighted_phi
+  inference_scope: descriptive
+
+edge_criteria:
+  minimum_effect: 0.08
+  minimum_complete_n: 500
+  minimum_condition_cases: 30
+  minimum_cooccurring_cases: 10
+  require_fdr: false
+  maximum_q_value: 0.05
+
+node_criteria:
+  minimum_valid_n: 500
+  minimum_cases: 30
+
+visualization:
+  width: 9
+  height: 7
+  dpi: 160
+
+viability:
+  minimum_eligible_graphs: 6
+  minimum_unique_edge_fraction: 0.5
+  preferred_median_density_minimum: 0.05
+  preferred_median_density_maximum: 0.75
+  density_caution_threshold: 0.70
