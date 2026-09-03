@@ -4,9 +4,9 @@ This repository builds population-specific multimorbidity association graphs
 from BRFSS data to evaluate whether frequent subgraph mining is a viable next
 step for identifying socioeconomic signatures of multimorbidity.
 
-Current scope: Phases 0–2 only. The code intentionally stops before gSpan,
-motif discovery, discriminative motif testing, replication, and sensitivity
-analysis.
+Current scope: Phases 0–2.5 only. Phase 2.5 calibrates graph construction and
+tests graph-level SES structure before gSpan. The code intentionally stops
+before motif discovery, discriminative motif testing, and replication.
 
 ## Scientific boundary
 
@@ -34,7 +34,13 @@ source .venv/bin/activate
 python -m pip install -e ".[dev]"
 ```
 
-The equivalent Conda environment is defined in `environment.yml`.
+The equivalent Conda environment, including R 4.4 and the R `survey` package
+required for Phase 2.5, is defined in `environment.yml`:
+
+```bash
+conda env create -f environment.yml
+conda activate multimorbidity-motifs
+```
 
 ## Run Phases 1–2
 
@@ -61,6 +67,56 @@ The official 2024 source is
 <https://www.cdc.gov/brfss/annual_data/annual_2024.html>. Raw and derived
 respondent-level data are ignored by Git.
 
+## Run Phase 2.5
+
+Phase 2.5 uses separate configuration files so the five-state Phase 2 run
+remains reproducible:
+
+```bash
+multimorbidity-motifs phase25
+```
+
+Adjusted models checkpoint by state. Re-running the same configuration resumes
+an interrupted point-estimate or bootstrap stage from completed states.
+
+The primary geography is the available U.S. states plus DC; Guam, Puerto Rico,
+and the U.S. Virgin Islands are excluded. A state enters a given SES analysis
+only when both its lower and higher strata have at least 1,000 respondents.
+Every population registry also reports Kish effective sample size.
+The 1,000 threshold is an unweighted eligibility rule; effective sample size
+is reported separately and is not silently substituted for raw `n`. Pairing
+is evaluated independently for each SES definition, and cross-definition
+sensitivity uses only jurisdictions eligible under both definitions.
+
+Education is primary. Income is a non-bootstrap sensitivity analysis. The
+three prespecified point-estimate rules are:
+
+- survey-weighted phi at least `0.08`;
+- survey-weighted phi at least `0.12`;
+- age/sex-adjusted survey logistic association with positive OR, lower 95%
+  confidence bound above 1, and within-graph BH `q <= 0.05`.
+
+Adjusted logistic models use `_LLCPWT`, `_STSTR`, and `_PSU` through R
+`survey::svyglm`. The graph uses a fixed condition-registry direction and
+records the reverse-direction OR as a concordance diagnostic. Edges remain
+undirected statistical associations; neither direction is interpreted
+causally.
+Lonely PSUs, including domain-induced lonely PSUs, use the survey package's
+`adjust` convention and are recorded in the run manifest.
+
+Education adjusted-edge candidates receive 200 bootstrap replicate fits.
+The calibration-stable rule additionally requires at least 90% of replicate
+ORs above 1. Two hundred replicates are for calibration only; paper-relevant
+edges or motifs should be reconfirmed with 500–1,000 replicates.
+Wilson intervals are reported to expose uncertainty in each estimated
+stability proportion.
+
+Similarity outputs include raw edge-set Jaccard and a null-standardized value
+from the exact random-edge null conditional on both graph edge counts. The SES
+permutation test independently swaps lower and higher labels within each state
+while preserving the paired graphs. Its null is that graph structure is
+unrelated to SES label conditional on state.
+
 ## Configuration
 
 - `configs/conditions.yaml`: year-specific condition registry and coding rules
@@ -68,6 +124,9 @@ respondent-level data are ignored by Git.
   prototype states, sample-size rules, and output roots
 - `configs/graph.yaml`: association estimator, edge/node criteria,
   visualization, and viability thresholds
+- `configs/analysis_phase25.yaml`: all-state/DC and dual-SES calibration scope
+- `configs/graph_phase25.yaml`: fixed edge scenarios, bootstrap, permutation,
+  and neutral GO/HOLD criteria
 
 The provisional default uses ten conditions, California, Florida, Michigan,
 New York, and Texas, and two education strata:
@@ -134,6 +193,38 @@ They include:
 The motif occurrence matrix is not created because it belongs after the
 Phase 2 viability decision.
 
+## Phase 2.5 outputs
+
+Calibration outputs are written to:
+
+```text
+results/phase25/year=2024/run=<configuration digest>/full/
+```
+
+`--skip-bootstrap` writes an isolated `point_only/` report. R model caches are
+content-addressed by the data, jobs, script, parameters, and R package
+versions, so the two report modes cannot mix stale artifacts.
+
+Principal outputs include:
+
+- paired eligibility and Kish effective sample sizes;
+- weighted-phi and survey-adjusted pair tables;
+- 200-replicate edge-stability estimates;
+- graph statistics and edge support by rule;
+- raw and density-adjusted similarity;
+- the within-state SES-label-swap permutation distribution;
+- education-versus-income sensitivity;
+- California lower-SES outlier diagnostics;
+- a neutral pre-gSpan `viability_report.json`.
+
+The GO/HOLD decision uses graph count, sparsity, edge stability, recurrent
+structure, and heterogeneous-but-comparable graph structure. SES permutation
+significance is reported but explicitly excluded from rule selection and the
+technical GO/HOLD decision.
+The decision is scoped to the configured bootstrap-stable primary rule.
+Alternative threshold rules receive separate technical profiles and are not
+promoted without their own stability calibration.
+
 ## Reproducibility
 
 Output directories are deterministic hashes of all three configuration files.
@@ -158,3 +249,8 @@ Review `viability_report.json`, graph statistics, edge tables, and network
 figures before authorizing any Phase 3 implementation. The report emits a
 density caution when any prototype graph reaches the configured `0.70`
 threshold, even when the median-density viability criterion passes.
+
+The exact original Phase 2 heatmap and lightweight scientific outputs are
+archived under `results/baselines/phase2_365b9697fd28/`. PNG checksums are
+provenance only; regression tests target scientific tables and values rather
+than renderer-dependent image bytes.

@@ -48,6 +48,12 @@ def test_pairwise_similarity_uses_labeled_edge_sets() -> None:
     ].iloc[0]
     assert comparison["edge_jaccard"] == 1 / 3
     assert np.isclose(comparison["edge_agreement"], 1 / 3)
+    assert np.isfinite(comparison["density_adjusted_jaccard_z"])
+    assert comparison["density_null_expected_jaccard"] > 0
+    diagonal = result[
+        (result["graph_id_a"] == "low") & (result["graph_id_b"] == "low")
+    ].iloc[0]
+    assert np.isnan(diagonal["density_adjusted_jaccard_z"])
 
 
 def test_viability_report_defers_motif_criteria() -> None:

@@ -6,13 +6,18 @@ from collections.abc import Sequence
 from mm_motifs.config import load_config
 from mm_motifs.data.download import download_brfss
 from mm_motifs.workflows.audit import run_audit
+from mm_motifs.workflows.phase25 import run_phase25
 from mm_motifs.workflows.prototype import run_prototype
 
 
-def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--analysis", default="configs/analysis.yaml")
+def _add_config_arguments(
+    parser: argparse.ArgumentParser,
+    analysis_default: str = "configs/analysis.yaml",
+    graph_default: str = "configs/graph.yaml",
+) -> None:
+    parser.add_argument("--analysis", default=analysis_default)
     parser.add_argument("--conditions", default="configs/conditions.yaml")
-    parser.add_argument("--graph", default="configs/graph.yaml")
+    parser.add_argument("--graph", default=graph_default)
     parser.add_argument("--year", type=int)
     parser.add_argument("--verbose", action="store_true")
 
@@ -20,7 +25,7 @@ def _add_config_arguments(parser: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="multimorbidity-motifs",
-        description="BRFSS multimorbidity graph Phases 0–2",
+        description="BRFSS multimorbidity graph Phases 0–2.5",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -47,6 +52,18 @@ def build_parser() -> argparse.ArgumentParser:
     phase02.add_argument("--skip-download", action="store_true")
     phase02.add_argument("--keep-archive", action="store_true")
     phase02.add_argument("--no-persist-harmonized", action="store_true")
+
+    phase25 = subparsers.add_parser(
+        "phase25",
+        help="Run all-state Phase 2.5 graph calibration",
+    )
+    _add_config_arguments(
+        phase25,
+        analysis_default="configs/analysis_phase25.yaml",
+        graph_default="configs/graph_phase25.yaml",
+    )
+    phase25.add_argument("--workers", type=int, default=4)
+    phase25.add_argument("--skip-bootstrap", action="store_true")
     return parser
 
 
@@ -80,6 +97,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 config,
                 verbose=args.verbose,
                 persist_harmonized=False if args.no_persist_harmonized else None,
+            )
+        )
+    elif args.command == "phase25":
+        print(
+            run_phase25(
+                config,
+                verbose=args.verbose,
+                workers=max(1, args.workers),
+                run_bootstrap=not args.skip_bootstrap,
             )
         )
     return 0

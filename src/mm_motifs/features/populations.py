@@ -72,6 +72,88 @@ def make_graph_id(year: int, state_code: int, ses_category: str) -> str:
     return f"{year}_{state_code:02d}_{ses_category}"
 
 
+def primary_geography_codes() -> list[int]:
+    return sorted(code for code in STATE_NAMES if code < 60)
+
+
+def make_phase25_graph_id(
+    year: int,
+    state_code: int,
+    ses_definition: str,
+    ses_category: str,
+) -> str:
+    return f"{year}_{state_code:02d}_{ses_definition}_{ses_category}"
+
+
+def phase25_population_registry(
+    frame: pd.DataFrame,
+    year: int,
+    ses_definition: str,
+    minimum_n: int,
+    geography_codes: list[int] | None = None,
+) -> pd.DataFrame:
+    codes = geography_codes or primary_geography_codes()
+    ses_column = f"ses_{ses_definition}"
+    if ses_column not in frame:
+        raise KeyError(f"Missing harmonized SES column: {ses_column}")
+    reported_codes = set(
+        pd.to_numeric(frame["state_code"], errors="coerce").dropna().astype(int)
+    )
+    rows = []
+    for state_code in codes:
+        state_frame = frame[frame["state_code"] == state_code]
+        for category in ("lower", "higher"):
+            group = state_frame[state_frame[ses_column] == category]
+            weights = pd.to_numeric(group["survey_weight"], errors="coerce")
+            valid_weight = weights.notna() & (weights > 0)
+            valid_weights = weights.loc[valid_weight]
+            weight_sum = float(valid_weights.sum())
+            weight_squared_sum = float((valid_weights**2).sum())
+            n = int(len(group))
+            if state_code not in reported_codes:
+                status = "no reporting data"
+            elif n < minimum_n:
+                status = "insufficient sample"
+            else:
+                status = "eligible"
+            rows.append(
+                {
+                    "graph_id": make_phase25_graph_id(
+                        year,
+                        state_code,
+                        ses_definition,
+                        category,
+                    ),
+                    "year": year,
+                    "geography_code": state_code,
+                    "geography": state_name(state_code),
+                    "ses_definition": ses_definition,
+                    "ses_category": category,
+                    "n_unweighted": n,
+                    "weighted_population_estimate": weight_sum,
+                    "kish_effective_n": (
+                        weight_sum**2 / weight_squared_sum
+                        if weight_squared_sum > 0
+                        else float("nan")
+                    ),
+                    "n_strata": int(group["survey_strata"].nunique(dropna=True)),
+                    "n_psu": int(group["survey_psu"].nunique(dropna=True)),
+                    "eligibility_status": status,
+                }
+            )
+    registry = pd.DataFrame(rows)
+    registry["stratum_eligibility_status"] = registry["eligibility_status"]
+    for state_code, indices in registry.groupby("geography_code").groups.items():
+        statuses = registry.loc[indices, "stratum_eligibility_status"]
+        if statuses.eq("eligible").all():
+            continue
+        eligible_indices = statuses[statuses == "eligible"].index
+        registry.loc[eligible_indices, "eligibility_status"] = (
+            "paired SES stratum ineligible"
+        )
+    return registry
+
+
 def population_registry(
     frame: pd.DataFrame,
     analysis: dict[str, Any],
@@ -93,6 +175,9 @@ def population_registry(
             ]
             weights = pd.to_numeric(group["survey_weight"], errors="coerce")
             valid_weight = weights.notna() & (weights > 0)
+            valid_weights = weights.loc[valid_weight]
+            weight_sum = float(valid_weights.sum())
+            weight_squared_sum = float((valid_weights**2).sum())
             n = int(len(group))
             rows.append(
                 {
@@ -102,7 +187,12 @@ def population_registry(
                     "geography": state_name(state_code),
                     "ses_category": category,
                     "n_unweighted": n,
-                    "weighted_population_estimate": float(weights.loc[valid_weight].sum()),
+                    "weighted_population_estimate": weight_sum,
+                    "kish_effective_n": (
+                        weight_sum**2 / weight_squared_sum
+                        if weight_squared_sum > 0
+                        else float("nan")
+                    ),
                     "n_strata": int(group["survey_strata"].nunique(dropna=True)),
                     "n_psu": int(group["survey_psu"].nunique(dropna=True)),
                     "eligibility_status": "eligible" if n >= minimum_n else "insufficient sample",

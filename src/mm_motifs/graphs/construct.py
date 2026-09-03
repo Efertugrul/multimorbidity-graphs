@@ -35,7 +35,24 @@ def construct_graph(
     node_table: pd.DataFrame,
     edge_table: pd.DataFrame,
     graph_config: dict[str, Any],
+    population_graph_id: str | None = None,
+    rule_id: str | None = None,
+    estimator_name: str | None = None,
 ) -> nx.Graph:
+    weights = pd.to_numeric(population["survey_weight"], errors="coerce")
+    valid_weights = weights[weights.notna() & weights.gt(0)]
+    weight_sum = float(valid_weights.sum())
+    weight_squared_sum = float((valid_weights**2).sum())
+    inference_scope = (
+        str(edge_table["inference_scope"].iloc[0])
+        if "inference_scope" in edge_table and not edge_table.empty
+        else graph_config["estimator"]["inference_scope"]
+    )
+    association_scale = (
+        str(edge_table["association_scale"].iloc[0])
+        if "association_scale" in edge_table and not edge_table.empty
+        else estimator_name or graph_config["estimator"]["name"]
+    )
     graph = nx.Graph(
         graph_id=graph_id,
         year=int(year),
@@ -43,10 +60,20 @@ def construct_graph(
         geography=geography,
         ses_category=ses_category,
         n_unweighted=int(len(population)),
-        weighted_population_estimate=float(population["survey_weight"].sum()),
-        estimator=graph_config["estimator"]["name"],
-        inference_scope=graph_config["estimator"]["inference_scope"],
+        weighted_population_estimate=weight_sum,
+        kish_effective_n=(
+            weight_sum**2 / weight_squared_sum
+            if weight_squared_sum > 0
+            else float("nan")
+        ),
+        estimator=estimator_name or graph_config["estimator"]["name"],
+        inference_scope=inference_scope,
+        association_scale=association_scale,
     )
+    if population_graph_id is not None:
+        graph.graph["population_graph_id"] = population_graph_id
+    if rule_id is not None:
+        graph.graph["rule_id"] = rule_id
     criteria = graph_config["node_criteria"]
     for row in node_table.itertuples(index=False):
         eligible = (
@@ -64,12 +91,28 @@ def construct_graph(
 
     for row in edge_table.loc[edge_table["edge_present"]].itertuples(index=False):
         if row.source_condition in graph and row.target_condition in graph:
+            attributes = {
+                "association": float(row.association),
+                "estimator": row.estimator,
+                "n_complete": int(row.n_complete),
+                "cooccurring_cases": int(row.cooccurring_cases),
+            }
+            for name in (
+                "odds_ratio",
+                "reverse_odds_ratio",
+                "confidence_low",
+                "confidence_high",
+                "q_value",
+                "positive_stability",
+                "stability_wilson_low",
+                "stability_wilson_high",
+            ):
+                value = getattr(row, name, None)
+                if value is not None and pd.notna(value):
+                    attributes[name] = float(value)
             graph.add_edge(
                 row.source_condition,
                 row.target_condition,
-                association=float(row.association),
-                estimator=row.estimator,
-                n_complete=int(row.n_complete),
-                cooccurring_cases=int(row.cooccurring_cases),
+                **attributes,
             )
     return graph

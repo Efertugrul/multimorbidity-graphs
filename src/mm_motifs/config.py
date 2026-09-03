@@ -56,8 +56,41 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
         raise ValueError(f"Unknown active SES definition: {active_ses}")
     if year not in definitions[active_ses]["source_by_year"]:
         raise ValueError(f"SES definition {active_ses} has no source for {year}")
-    if graph["estimator"]["name"] != "weighted_phi":
-        raise ValueError("Phase 2 supports only the weighted_phi estimator")
+    estimator_name = graph["estimator"]["name"]
+    if estimator_name not in {"weighted_phi", "phase25_scenarios"}:
+        raise ValueError(f"Unsupported estimator configuration: {estimator_name}")
+    if estimator_name == "phase25_scenarios":
+        phase25 = analysis.get("phase25")
+        if not phase25:
+            raise ValueError("Phase 2.5 analysis settings are required")
+        unknown_ses = set(phase25["ses_definitions"]) - set(definitions)
+        if unknown_ses:
+            raise ValueError(f"Unknown Phase 2.5 SES definitions: {sorted(unknown_ses)}")
+        if phase25["primary_ses_definition"] not in phase25["ses_definitions"]:
+            raise ValueError("Phase 2.5 primary SES must be one of the SES definitions")
+        if any(int(code) >= 60 for code in phase25["geography_codes"]):
+            raise ValueError("Phase 2.5 primary geography cannot include territories")
+        graph_phase25 = graph.get("phase25")
+        if not graph_phase25:
+            raise ValueError("Phase 2.5 graph settings are required")
+        if int(graph_phase25["bootstrap"]["replicates"]) < 2:
+            raise ValueError("At least two bootstrap replicates are required")
+        if (
+            graph_phase25["bootstrap"]["ses_definition"]
+            != phase25["primary_ses_definition"]
+        ):
+            raise ValueError("Bootstrap SES definition must match the primary SES")
+        if graph_phase25["bootstrap"]["type"] != "bootstrap":
+            raise ValueError("Phase 2.5 supports bootstrap replicate weights only")
+        if graph_phase25["bootstrap"]["mse"] is not True:
+            raise ValueError("Phase 2.5 bootstrap requires mse: true")
+        rule_ids = [
+            *(rule["rule_id"] for rule in graph_phase25["phi_rules"]),
+            graph_phase25["adjusted_rule"]["rule_id"],
+            graph_phase25["bootstrap"]["rule_id"],
+        ]
+        if len(rule_ids) != len(set(rule_ids)):
+            raise ValueError("Phase 2.5 rule IDs must be unique")
 
     names: set[str] = set()
     required_years = {

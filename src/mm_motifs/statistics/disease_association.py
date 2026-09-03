@@ -111,3 +111,24 @@ def estimate_edge_table(
     )
     result["edge_present"] = result["pair_eligible"] & effect_pass & fdr_pass
     return result
+
+
+def estimate_phi_scenarios(
+    frame: pd.DataFrame,
+    condition_names: list[str],
+    graph_id: str,
+    criteria: dict[str, Any],
+    rules: list[dict[str, Any]],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    pair_table = estimate_edge_table(frame, condition_names, graph_id, criteria)
+    scenario_tables = []
+    for rule in rules:
+        scenario = pair_table.copy()
+        scenario["rule_id"] = rule["rule_id"]
+        scenario["minimum_effect"] = float(rule["minimum_effect"])
+        scenario["association_scale"] = "weighted_phi"
+        scenario["edge_present"] = scenario["pair_eligible"] & scenario[
+            "association"
+        ].ge(float(rule["minimum_effect"]))
+        scenario_tables.append(scenario)
+    return pair_table, pd.concat(scenario_tables, ignore_index=True)

@@ -1,0 +1,47 @@
+{
+  "criteria": {
+    "A_structural_heterogeneity": {
+      "interpretation": "Edge sets vary across eligible population graphs.",
+      "passed": true
+    },
+    "B_usable_density": {
+      "caution": "At least one graph meets the configured high-density caution threshold; review thresholding or adjustment before motif mining.",
+      "interpretation": "Median density lies inside the configured exploratory range.",
+      "passed": true
+    },
+    "C_recurrent_nontrivial_motifs": {
+      "interpretation": "Not assessed before the Phase 2 stop.",
+      "passed": null
+    },
+    "D_ses_differentiation": {
+      "interpretation": "Not tested inferentially in Phase 2.",
+      "passed": null
+    },
+    "E_modest_sensitivity": {
+      "interpretation": "Deferred until the representation passes this checkpoint.",
+      "passed": null
+    }
+  },
+  "density": {
+    "maximum": 0.7333333333333333,
+    "median": 0.5888888888888888,
+    "minimum": 0.4666666666666667
+  },
+  "edge_count": {
+    "maximum": 33,
+    "median": 26.5,
+    "minimum": 21
+  },
+  "eligible_graph_count": 10,
+  "interpretation_constraint": "Edges are descriptive weighted associations, not causal links or design-based inferential results.",
+  "mean_within_state_low_high_edge_jaccard": 0.6920066595418295,
+  "off_diagonal_edge_jaccard": {
+    "maximum": 0.896551724137931,
+    "median": 0.7666666666666667,
+    "minimum": 0.46875
+  },
+  "phase_3_recommendation": "proceed_to_motif_pipeline_design_with_density_review",
+  "scope": "Phase 2 descriptive viability checkpoint",
+  "unique_edge_set_fraction": 1.0,
+  "unique_edge_sets": 10
+}

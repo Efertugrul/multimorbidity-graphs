@@ -1,0 +1,46 @@
+{
+  "condition_count": 10,
+  "condition_registry_version": "0.1.0",
+  "config_digest": "365b9697fd28",
+  "dataset_year": 2024,
+  "edge_estimator": "weighted_phi",
+  "edge_threshold": 0.08,
+  "eligible_graphs": 10,
+  "git_commit": null,
+  "gspan_support": null,
+  "harmonized_dataset": "data/interim/year=2024/run=365b9697fd28/prototype_harmonized.parquet",
+  "inference_scope": "descriptive survey-weighted phi; strata and PSU retained but not used for Phase 2 variance inference",
+  "minimum_graph_sample_size": 1000,
+  "multiple_testing_rule": "not used for descriptive Phase 2 graph thresholding",
+  "phase": "prototype",
+  "phase_boundary": "Stopped before frequent subgraph mining",
+  "population_definition": "state \u00d7 education_binary",
+  "prototype_states": [
+    {
+      "code": 6,
+      "name": "California"
+    },
+    {
+      "code": 12,
+      "name": "Florida"
+    },
+    {
+      "code": 26,
+      "name": "Michigan"
+    },
+    {
+      "code": 36,
+      "name": "New York"
+    },
+    {
+      "code": 48,
+      "name": "Texas"
+    }
+  ],
+  "random_seed": 20240902,
+  "ses_definition": "education_binary",
+  "software_version": "0.1.0",
+  "source_file": "data/raw/brfss/2024/LLCP2024.XPT",
+  "timestamp_utc": "2026-09-03T00:15:36.165756+00:00",
+  "unclassified_ses_respondents": 575
+}

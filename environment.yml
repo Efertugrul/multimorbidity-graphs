@@ -12,6 +12,9 @@ dependencies:
   - pyreadstat>=1.2.7
   - pyyaml>=6
   - requests>=2.31
+  - r-base=4.4
+  - r-data.table
+  - r-survey
   - scipy>=1.11
   - statsmodels>=0.14
   - tqdm>=4.66

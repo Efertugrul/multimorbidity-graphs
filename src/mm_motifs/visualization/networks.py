@@ -84,6 +84,8 @@ def draw_similarity_heatmap(
     graph_order: list[str],
     path: Path,
     dpi: int,
+    show_labels: bool = True,
+    title: str = "Population graph edge-set Jaccard similarity",
 ) -> None:
     matrix = similarities.pivot(
         index="graph_id_a",
@@ -92,9 +94,18 @@ def draw_similarity_heatmap(
     ).reindex(index=graph_order, columns=graph_order)
     figure, axis = plt.subplots(figsize=(9, 8))
     image = axis.imshow(matrix.to_numpy(), vmin=0, vmax=1, cmap="magma")
-    axis.set_xticks(np.arange(len(graph_order)), graph_order, rotation=60, ha="right")
-    axis.set_yticks(np.arange(len(graph_order)), graph_order)
-    axis.set_title("Population graph edge-set Jaccard similarity")
+    if show_labels:
+        axis.set_xticks(
+            np.arange(len(graph_order)),
+            graph_order,
+            rotation=60,
+            ha="right",
+        )
+        axis.set_yticks(np.arange(len(graph_order)), graph_order)
+    else:
+        axis.set_xticks([])
+        axis.set_yticks([])
+    axis.set_title(title)
     figure.colorbar(image, ax=axis, label="Jaccard similarity")
     figure.tight_layout()
     _save(figure, path, dpi)

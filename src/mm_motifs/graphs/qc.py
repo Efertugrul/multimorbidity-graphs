@@ -7,6 +7,7 @@ from typing import Any
 import networkx as nx
 import numpy as np
 import pandas as pd
+from scipy.stats import hypergeom
 
 
 def graph_statistics(graph: nx.Graph) -> dict[str, Any]:
@@ -21,6 +22,7 @@ def graph_statistics(graph: nx.Graph) -> dict[str, Any]:
         "ses_category": graph.graph["ses_category"],
         "n_unweighted": graph.graph["n_unweighted"],
         "weighted_population_estimate": graph.graph["weighted_population_estimate"],
+        "kish_effective_n": graph.graph.get("kish_effective_n", math.nan),
         "node_count": node_count,
         "edge_count": edge_count,
         "density": nx.density(graph) if node_count > 1 else 0.0,
@@ -38,6 +40,55 @@ def _association_map(table: pd.DataFrame) -> dict[tuple[str, str], float]:
         key = tuple(sorted((row.source_condition, row.target_condition)))
         values[key] = float(row.association)
     return values
+
+
+def fixed_edge_null_jaccard(
+    edge_count_a: int,
+    edge_count_b: int,
+    possible_edges: int,
+    observed_jaccard: float,
+) -> dict[str, float]:
+    if possible_edges <= 0:
+        return {
+            "expected": 1.0,
+            "standard_deviation": 0.0,
+            "z_score": math.nan,
+            "excess": observed_jaccard - 1.0,
+            "p_value_upper": 1.0,
+        }
+    lower = max(0, edge_count_a + edge_count_b - possible_edges)
+    upper = min(edge_count_a, edge_count_b)
+    intersections = np.arange(lower, upper + 1)
+    probabilities = hypergeom.pmf(
+        intersections,
+        possible_edges,
+        edge_count_a,
+        edge_count_b,
+    )
+    denominators = edge_count_a + edge_count_b - intersections
+    jaccards = np.divide(
+        intersections,
+        denominators,
+        out=np.ones_like(intersections, dtype=float),
+        where=denominators > 0,
+    )
+    expected = float(np.sum(probabilities * jaccards))
+    variance = float(np.sum(probabilities * np.square(jaccards - expected)))
+    standard_deviation = math.sqrt(max(0.0, variance))
+    z_score = (
+        (observed_jaccard - expected) / standard_deviation
+        if standard_deviation > 0
+        else math.nan
+    )
+    return {
+        "expected": expected,
+        "standard_deviation": standard_deviation,
+        "z_score": z_score,
+        "excess": observed_jaccard - expected,
+        "p_value_upper": float(
+            probabilities[jaccards >= observed_jaccard - 1e-12].sum()
+        ),
+    }
 
 
 def pairwise_similarity(
@@ -58,6 +109,21 @@ def pairwise_similarity(
         union = edges_a | edges_b
         intersection = edges_a & edges_b
         jaccard = len(intersection) / len(union) if union else 1.0
+        if graph_id_a == graph_id_b:
+            density_null = {
+                "expected": math.nan,
+                "standard_deviation": math.nan,
+                "z_score": math.nan,
+                "excess": math.nan,
+                "p_value_upper": math.nan,
+            }
+        else:
+            density_null = fixed_edge_null_jaccard(
+                len(edges_a),
+                len(edges_b),
+                possible_edges,
+                jaccard,
+            )
         agreement = (
             1 - len(edges_a ^ edges_b) / possible_edges if possible_edges else 1.0
         )
@@ -92,6 +158,13 @@ def pairwise_similarity(
                 "same_state": graph_a.graph["state_code"] == graph_b.graph["state_code"],
                 "same_ses": graph_a.graph["ses_category"] == graph_b.graph["ses_category"],
                 "edge_jaccard": jaccard,
+                "density_null_expected_jaccard": density_null["expected"],
+                "density_null_standard_deviation": density_null[
+                    "standard_deviation"
+                ],
+                "density_adjusted_jaccard_z": density_null["z_score"],
+                "density_adjusted_jaccard_excess": density_null["excess"],
+                "density_null_p_value_upper": density_null["p_value_upper"],
                 "edge_agreement": agreement,
                 "association_correlation": correlation,
                 "common_association_count": len(common),

@@ -17,5 +17,9 @@ def write_graph(graph: nx.Graph, directory: Path) -> tuple[Path, Path]:
     os.replace(temporary, graphml_path)
 
     json_path = directory / f"{graph_id}.json"
-    write_json(nx.node_link_data(graph, edges="edges"), json_path)
+    try:
+        node_link = nx.node_link_data(graph, edges="edges")
+    except TypeError:
+        node_link = nx.node_link_data(graph, link="edges")
+    write_json(node_link, json_path)
     return graphml_path, json_path
