@@ -1,0 +1,76 @@
+{
+  "adjusted_candidate_edge_count": 24,
+  "candidate_edges_below_stability_threshold": 0,
+  "coding_registry_shared_across_states": true,
+  "graph_id": "2024_06_education_binary_lower",
+  "interpretation": "Descriptive threshold, composition, adjusted-association, and stability diagnostics; no causal or directional interpretation.",
+  "largest_absolute_prevalence_deviations": [
+    {
+      "california_weighted_prevalence": 0.046354454785462317,
+      "condition": "OTHER_CANCER",
+      "peer_median_weighted_prevalence": 0.07741231151514624,
+      "peer_robust_prevalence_z": -2.672988271974315
+    },
+    {
+      "california_weighted_prevalence": 0.17214692549694177,
+      "condition": "ARTHRITIS",
+      "peer_median_weighted_prevalence": 0.2690207158780484,
+      "peer_robust_prevalence_z": -2.354683755725988
+    },
+    {
+      "california_weighted_prevalence": 0.06906108696612365,
+      "condition": "CURRENT_ASTHMA",
+      "peer_median_weighted_prevalence": 0.10755991946461163,
+      "peer_robust_prevalence_z": -2.277578423389644
+    }
+  ],
+  "minimum_node_valid_fraction": 0.9834384858044164,
+  "minimum_pair_complete_n": 2474,
+  "node_kish_effective_n_median": 1461.9276760653393,
+  "node_kish_effective_n_minimum": 1446.8288419789205,
+  "phi_edges_within_002_below_reference_threshold": 10,
+  "population_design_effect": 1.7238417174125908,
+  "population_effective_n_percentile": 0.6382978723404256,
+  "population_kish_effective_n": 1471.1327463442656,
+  "population_n_unweighted": 2536,
+  "reference_phi_threshold": 0.08,
+  "rule_ranks": [
+    {
+      "density": 0.5333333333333333,
+      "edge_count": 24,
+      "mean_same_ses_density_adjusted_z": 2.2087396821740906,
+      "mean_same_ses_jaccard": 0.5297927291101332,
+      "robust_density_adjusted_similarity_z": -1.6351938856225492,
+      "robust_similarity_z": -1.5954294538376372,
+      "rule_id": "adjusted_fdr"
+    },
+    {
+      "density": 0.5333333333333333,
+      "edge_count": 24,
+      "mean_same_ses_density_adjusted_z": 2.2087396821740906,
+      "mean_same_ses_jaccard": 0.5297927291101332,
+      "robust_density_adjusted_similarity_z": -1.6351938856225492,
+      "robust_similarity_z": -1.5954294538376372,
+      "rule_id": "adjusted_stable"
+    },
+    {
+      "density": 0.4666666666666667,
+      "edge_count": 21,
+      "mean_same_ses_density_adjusted_z": 2.3789086883915416,
+      "mean_same_ses_jaccard": 0.5187914554456804,
+      "robust_density_adjusted_similarity_z": -3.515382263993807,
+      "robust_similarity_z": -5.2381146951273445,
+      "rule_id": "phi_008"
+    },
+    {
+      "density": 0.3333333333333333,
+      "edge_count": 15,
+      "mean_same_ses_density_adjusted_z": 4.820318989924981,
+      "mean_same_ses_jaccard": 0.5754304545412395,
+      "robust_density_adjusted_similarity_z": -0.3610570357024535,
+      "robust_similarity_z": -1.6227461857993286,
+      "rule_id": "phi_012"
+    }
+  ],
+  "stable_adjusted_edge_count": 24
+}

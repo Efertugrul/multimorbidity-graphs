@@ -1,0 +1,52 @@
+{
+  "baseline_run_id": "365b9697fd28",
+  "bootstrap_complete": true,
+  "bootstrap_model_cache_key": "87bd78275155bd55",
+  "bootstrap_purpose": "calibration only; confirm paper-relevant results with 500\u20131000 replicates",
+  "bootstrap_replicates": 200,
+  "condition_registry_version": "0.1.0",
+  "config_digest": "fff54b040741",
+  "dataset_year": 2024,
+  "decision_excludes_ses_significance": true,
+  "edge_estimator": "phase25_scenarios",
+  "edge_rules": [
+    "adjusted_fdr",
+    "adjusted_stable",
+    "phi_008",
+    "phi_012"
+  ],
+  "edge_semantics": "Undirected statistical association; fixed logistic direction is an estimation convention, not a causal direction",
+  "edge_threshold": "phi >= 0.08; phi >= 0.12; or adjusted OR > 1 with 95% CI lower > 1 and within-graph BH q <= 0.05",
+  "eligible_population_graphs": {
+    "education_binary": 94,
+    "income_binary": 96
+  },
+  "geography_scope": "states_and_dc",
+  "git_commit": "b04ab0b4558c97bd601cba3b8cea18731759fd81",
+  "git_dirty": false,
+  "gspan_support": null,
+  "harmonized_cache_key": "45d2ec74ccd94a07",
+  "minimum_graph_sample_size": 1000,
+  "multiple_testing_rule": "BH FDR within each adjusted graph",
+  "permutation_null": "Graph structure is unrelated to SES label conditional on state",
+  "permutation_scheme": "within_state_lower_higher_label_swap",
+  "phase": "phase25",
+  "phase_boundary": "Stopped before frequent subgraph mining",
+  "point_model_cache_key": "a8759ba954d0b80c",
+  "population_definition": "available US state or DC \u00d7 SES; education primary, income sensitivity",
+  "r_runtime": {
+    "data_table": "1.18.4",
+    "r": "R version 4.4.3 (2025-02-28)",
+    "rscript": "/home/ubuntu/locdev/PHS-abstract/.conda/r-survey/bin/Rscript",
+    "survey": "4.5"
+  },
+  "random_seed": 20240902,
+  "similarity_density_adjustment": "Exact fixed-edge-count hypergeometric null",
+  "software_version": "0.2.0",
+  "source_data_sha256": "7d53cf088f858e02bcc029a51cf0408cc68f40a0ebeb02a3c0f73058aab36b1c",
+  "source_tree_sha256": "0c3100917efca11254bc3217f98901132c8f1d67d5f59ab5007b1f466d00e040",
+  "survey_adjust_domain_lonely": true,
+  "survey_lonely_psu": "adjust",
+  "territories_included": false,
+  "timestamp_utc": "2026-09-04T18:04:41.807951+00:00"
+}

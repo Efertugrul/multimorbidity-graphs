@@ -1,0 +1,119 @@
+{
+  "bootstrap_diagnostics": {
+    "bootstrap_intervals_including_zero": 30,
+    "candidate_edge_count": 2807,
+    "minimum_positive_stability": 0.935,
+    "retained_edge_count": 2807,
+    "retained_fraction": 1.0,
+    "selection_uses_point_estimate_not_interval_bound": true,
+    "wilson_lower_bound_meets_threshold_count": 2806
+  },
+  "bootstrap_scope": "200 replicates for calibration; confirm paper-relevant edges with 500\u20131000 replicates.",
+  "candidate_rule": "adjusted_stable",
+  "criteria": {
+    "bootstrap_complete": true,
+    "enough_graphs": true,
+    "heterogeneous_but_comparable": true,
+    "moderately_sparse": false,
+    "recurrent_edge_backbone": true
+  },
+  "decision": "HOLD",
+  "decision_basis": "Technical sparsity, stability, recurrence, and graph comparability only. SES permutation significance is excluded from the GO/HOLD decision.",
+  "decision_scope": "adjusted_stable with education_binary; alternative rules are reported but not promoted without their own stability calibration",
+  "diagnostics": {
+    "maximum_density": 0.8888888888888888,
+    "median_density_adjusted_jaccard_z": 3.2352385853614325,
+    "median_edge_count": 31.0,
+    "median_population_kish_effective_n": 1976.8725969015504,
+    "median_raw_jaccard": 0.6842105263157895,
+    "minimum_population_kish_effective_n": 295.6681344471387,
+    "populations_with_kish_effective_n_below_500": 1,
+    "variable_recurrent_edge_count": 30
+  },
+  "eligibility": [
+    {
+      "eligibility_status": "eligible",
+      "population_count": 94,
+      "ses_definition": "education_binary"
+    },
+    {
+      "eligibility_status": "insufficient sample",
+      "population_count": 3,
+      "ses_definition": "education_binary"
+    },
+    {
+      "eligibility_status": "no reporting data",
+      "population_count": 2,
+      "ses_definition": "education_binary"
+    },
+    {
+      "eligibility_status": "paired SES stratum ineligible",
+      "population_count": 3,
+      "ses_definition": "education_binary"
+    },
+    {
+      "eligibility_status": "eligible",
+      "population_count": 96,
+      "ses_definition": "income_binary"
+    },
+    {
+      "eligibility_status": "insufficient sample",
+      "population_count": 2,
+      "ses_definition": "income_binary"
+    },
+    {
+      "eligibility_status": "no reporting data",
+      "population_count": 2,
+      "ses_definition": "income_binary"
+    },
+    {
+      "eligibility_status": "paired SES stratum ineligible",
+      "population_count": 2,
+      "ses_definition": "income_binary"
+    }
+  ],
+  "phase_boundary": "Frequent subgraph mining is not implemented.",
+  "primary_ses_definition": "education_binary",
+  "rule_profiles": [
+    {
+      "bootstrap_stability_assessed": false,
+      "maximum_density": 0.8888888888888888,
+      "median_density_adjusted_jaccard_z": 3.2352385853614325,
+      "median_edge_count": 31.0,
+      "median_raw_jaccard": 0.6842105263157895,
+      "meets_sparsity_targets": false,
+      "rule_id": "adjusted_fdr",
+      "variable_recurrent_edge_count": 30
+    },
+    {
+      "bootstrap_stability_assessed": true,
+      "maximum_density": 0.8888888888888888,
+      "median_density_adjusted_jaccard_z": 3.2352385853614325,
+      "median_edge_count": 31.0,
+      "median_raw_jaccard": 0.6842105263157895,
+      "meets_sparsity_targets": false,
+      "rule_id": "adjusted_stable",
+      "variable_recurrent_edge_count": 30
+    },
+    {
+      "bootstrap_stability_assessed": false,
+      "maximum_density": 0.8666666666666667,
+      "median_density_adjusted_jaccard_z": 5.364187063868683,
+      "median_edge_count": 27.0,
+      "median_raw_jaccard": 0.7586206896551724,
+      "meets_sparsity_targets": false,
+      "rule_id": "phi_008",
+      "variable_recurrent_edge_count": 22
+    },
+    {
+      "bootstrap_stability_assessed": false,
+      "maximum_density": 0.6,
+      "median_density_adjusted_jaccard_z": 5.369455403712966,
+      "median_edge_count": 18.0,
+      "median_raw_jaccard": 0.631578947368421,
+      "meets_sparsity_targets": true,
+      "rule_id": "phi_012",
+      "variable_recurrent_edge_count": 19
+    }
+  ]
+}

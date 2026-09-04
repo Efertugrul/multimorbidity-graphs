@@ -225,6 +225,19 @@ The decision is scoped to the configured bootstrap-stable primary rule.
 Alternative threshold rules receive separate technical profiles and are not
 promoted without their own stability calibration.
 
+## Phase 2.5 calibration result
+
+The completed `fff54b040741` run returned **HOLD before gSpan**. All 2,807
+adjusted education candidate edges passed 200-replicate sign stability, so the
+stable rule remained too dense: median 31 of 45 edges and maximum density
+0.889. The `phi_012` comparison was technically sparse (median 18 edges,
+maximum density 0.60), but was not stability-calibrated and is not promoted as
+the primary rule.
+
+The lightweight evidence, figures, checksums, and interpretation are frozen in
+[`results/baselines/phase25_fff54b040741/`](results/baselines/phase25_fff54b040741/).
+No frequent subgraph mining has been run.
+
 ## Reproducibility
 
 Output directories are deterministic hashes of all three configuration files.

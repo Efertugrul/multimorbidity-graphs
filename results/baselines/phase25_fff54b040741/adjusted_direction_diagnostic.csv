@@ -1,0 +1,3 @@
+ses_definition,pair_count,direction_concordant_count,forward_model_failure_count,reverse_model_failure_count,reverse_nonconverged_count,direction_discordant_count
+education_binary,4230,4219,0,0,0,11
+income_binary,4320,4303,0,0,0,17

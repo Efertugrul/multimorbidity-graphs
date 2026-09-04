@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import shutil
 
@@ -340,6 +341,43 @@ def test_frozen_baseline_scientific_values() -> None:
     assert statistics["edge_count"].max() == 33
     assert len(similarities) == 100
     assert viability["unique_edge_sets"] == 10
+
+
+def test_frozen_phase25_scientific_values() -> None:
+    config = load_config(
+        "configs/analysis_phase25.yaml",
+        "configs/conditions.yaml",
+        "configs/graph_phase25.yaml",
+    )
+    assert config.digest == "fff54b040741"
+    baseline = Path("results/baselines/phase25_fff54b040741")
+    manifest = json.loads((baseline / "manifest.json").read_text())
+    viability = json.loads((baseline / "viability_report.json").read_text())
+    statistics = pd.read_csv(baseline / "graph_statistics.csv")
+    edges = pd.read_csv(baseline / "edge_table_all_rules.csv.gz", low_memory=False)
+    similarities = pd.read_csv(baseline / "structural_similarity.csv.gz")
+    bootstrap = pd.read_csv(baseline / "bootstrap_edge_stability.csv")
+
+    assert manifest["config_digest"] == "fff54b040741"
+    assert manifest["phase_boundary"] == "Stopped before frequent subgraph mining"
+    assert viability["decision"] == "HOLD"
+    assert viability["diagnostics"]["median_edge_count"] == 31.0
+    assert np.isclose(viability["diagnostics"]["maximum_density"], 8 / 9)
+    stable = statistics[
+        (statistics["ses_definition"] == "education_binary")
+        & (statistics["rule_id"] == "adjusted_stable")
+    ]
+    assert len(stable) == 94
+    assert stable["edge_count"].median() == 31
+    assert len(edges) == 29880
+    assert len(similarities) == 62992
+    off_diagonal = similarities["graph_id_a"].ne(similarities["graph_id_b"])
+    assert similarities.loc[
+        off_diagonal, "density_adjusted_jaccard_z"
+    ].notna().all()
+    assert len(bootstrap) == 2807
+    assert bootstrap["bootstrap_replicates_valid"].eq(200).all()
+    assert bootstrap["positive_stability"].ge(0.90).all()
 
 
 @pytest.mark.skipif(
