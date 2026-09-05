@@ -57,7 +57,11 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
     if year not in definitions[active_ses]["source_by_year"]:
         raise ValueError(f"SES definition {active_ses} has no source for {year}")
     estimator_name = graph["estimator"]["name"]
-    if estimator_name not in {"weighted_phi", "phase25_scenarios"}:
+    if estimator_name not in {
+        "weighted_phi",
+        "phase25_scenarios",
+        "phase26_phi_stability",
+    }:
         raise ValueError(f"Unsupported estimator configuration: {estimator_name}")
     if estimator_name == "phase25_scenarios":
         phase25 = analysis.get("phase25")
@@ -91,6 +95,31 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
         ]
         if len(rule_ids) != len(set(rule_ids)):
             raise ValueError("Phase 2.5 rule IDs must be unique")
+    if estimator_name == "phase26_phi_stability":
+        phase25 = analysis.get("phase25")
+        phase26 = graph.get("phase26")
+        if not phase25 or not phase26:
+            raise ValueError("Phase 2.6 requires Phase 2.5 population settings")
+        primary_ses = phase26["primary_ses_definition"]
+        if primary_ses != phase25["primary_ses_definition"]:
+            raise ValueError("Phase 2.6 SES must match the Phase 2.5 primary SES")
+        thresholds = phase26["thresholds"]
+        effects = [float(rule["minimum_effect"]) for rule in thresholds]
+        if effects != sorted(effects) or effects != [0.10, 0.12, 0.14]:
+            raise ValueError("Phase 2.6 thresholds must be 0.10, 0.12, and 0.14")
+        rule_ids = [str(rule["rule_id"]) for rule in thresholds]
+        if phase26["primary_rule_id"] not in rule_ids:
+            raise ValueError("Phase 2.6 primary rule must be a threshold rule")
+        if phase26["stable_rule_id"] in rule_ids:
+            raise ValueError("Phase 2.6 stable rule ID must be unique")
+        bootstrap = phase26["bootstrap"]
+        if int(bootstrap["replicates"]) < 2:
+            raise ValueError("At least two Phase 2.6 replicates are required")
+        if bootstrap["type"] != "bootstrap" or bootstrap["mse"] is not True:
+            raise ValueError("Phase 2.6 requires bootstrap replicate weights with mse")
+        stability = float(bootstrap["selection_stability_threshold"])
+        if not 0 < stability <= 1:
+            raise ValueError("Phase 2.6 stability threshold must be in (0, 1]")
 
     names: set[str] = set()
     required_years = {

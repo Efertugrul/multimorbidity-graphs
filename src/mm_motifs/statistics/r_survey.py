@@ -57,7 +57,7 @@ def resolve_rscript(project_root: Path) -> Path:
         if candidate and candidate.exists():
             return candidate
     raise RuntimeError(
-        "Rscript is required for Phase 2.5. Create the Conda environment from "
+        "Rscript is required for Phase 2.5–2.6. Create the Conda environment from "
         "environment.yml or set MM_MOTIFS_RSCRIPT."
     )
 

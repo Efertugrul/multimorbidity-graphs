@@ -4,9 +4,9 @@ This repository builds population-specific multimorbidity association graphs
 from BRFSS data to evaluate whether frequent subgraph mining is a viable next
 step for identifying socioeconomic signatures of multimorbidity.
 
-Current scope: Phases 0–2.5 only. Phase 2.5 calibrates graph construction and
-tests graph-level SES structure before gSpan. The code intentionally stops
-before motif discovery, discriminative motif testing, and replication.
+Current scope: Phases 0–2.6 only. Phase 2.6 is the final education-primary
+stability gate before gSpan. The code intentionally stops before motif
+discovery, discriminative motif testing, and replication.
 
 ## Scientific boundary
 
@@ -35,7 +35,7 @@ python -m pip install -e ".[dev]"
 ```
 
 The equivalent Conda environment, including R 4.4 and the R `survey` package
-required for Phase 2.5, is defined in `environment.yml`:
+required for Phases 2.5–2.6, is defined in `environment.yml`:
 
 ```bash
 conda env create -f environment.yml
@@ -117,6 +117,24 @@ permutation test independently swaps lower and higher labels within each state
 while preserving the paired graphs. Its null is that graph structure is
 unrelated to SES label conditional on state.
 
+## Run Phase 2.6
+
+Phase 2.6 tests the sparse `phi >= 0.12` rule without changing its threshold:
+
+```bash
+multimorbidity-motifs phase26
+```
+
+It uses education-primary graphs and 500 design-aware bootstrap replicates.
+Every disease pair reports point phi, `P(phi > 0)`, `P(phi >= 0.12)`, and the
+bootstrap median and percentile interval. The stable graph requires both
+point `phi >= 0.12` and selection stability at least `0.90`.
+
+The `0.10`, `0.12`, and `0.14` graphs are compared only to test local topology
+continuity; they are not candidate thresholds for post hoc selection. Frozen
+Phase 2.5 adjusted models validate whether retained phi edges remain positive
+after age/sex adjustment. They do not generate or filter Phase 2.6 graphs.
+
 ## Configuration
 
 - `configs/conditions.yaml`: year-specific condition registry and coding rules
@@ -127,6 +145,8 @@ unrelated to SES label conditional on state.
 - `configs/analysis_phase25.yaml`: all-state/DC and dual-SES calibration scope
 - `configs/graph_phase25.yaml`: fixed edge scenarios, bootstrap, permutation,
   and neutral GO/HOLD criteria
+- `configs/graph_phase26.yaml`: fixed phi stability, threshold-neighborhood,
+  adjustment-concordance, and final gate criteria
 
 The provisional default uses ten conditions, California, Florida, Michigan,
 New York, and Texas, and two education strata:
@@ -237,6 +257,21 @@ the primary rule.
 The lightweight evidence, figures, checksums, and interpretation are frozen in
 [`results/baselines/phase25_fff54b040741/`](results/baselines/phase25_fff54b040741/).
 No frequent subgraph mining has been run.
+
+## Phase 2.6 outputs
+
+Final-gate outputs are written to:
+
+```text
+results/phase26/year=2024/run=<configuration digest>/full/
+```
+
+They include edge-level phi bootstrap stability, raw and stable graph
+databases, threshold-transition diagnostics, adjusted-model concordance,
+density-adjusted similarity, recurrent edge support, figures, and a neutral
+`viability_report.json`. A GO requires all prespecified technical gates;
+neither SES separation nor adjusted-model significance is used to tune the
+graph rule.
 
 ## Reproducibility
 

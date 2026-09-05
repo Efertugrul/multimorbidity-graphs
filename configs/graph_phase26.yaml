@@ -1,0 +1,67 @@
+estimator:
+  name: phase26_phi_stability
+  inference_scope: descriptive_and_design_bootstrap
+
+edge_criteria:
+  minimum_effect: 0.12
+  minimum_complete_n: 500
+  minimum_condition_cases: 30
+  minimum_cooccurring_cases: 10
+  require_fdr: false
+  maximum_q_value: 0.05
+
+node_criteria:
+  minimum_valid_n: 500
+  minimum_cases: 30
+
+phase26:
+  phase25_baseline:
+    config_digest: fff54b040741
+    archive_directory: results/baselines/phase25_fff54b040741
+    adjusted_rule_id: adjusted_fdr
+  primary_ses_definition: education_binary
+  thresholds:
+    - rule_id: phi_010
+      minimum_effect: 0.10
+      role: neighborhood
+    - rule_id: phi_012
+      minimum_effect: 0.12
+      role: primary_raw
+    - rule_id: phi_014
+      minimum_effect: 0.14
+      role: neighborhood
+  primary_rule_id: phi_012
+  stable_rule_id: phi_012_stable
+  bootstrap:
+    replicates: 500
+    type: bootstrap
+    mse: true
+    seed: 20240902
+    selection_stability_threshold: 0.90
+  topology_continuity:
+    minimum_median_adjacent_jaccard: 0.70
+    maximum_fraction_adjacent_jaccard_below_050: 0.25
+    minimum_median_outer_jaccard: 0.50
+  adjusted_validation:
+    minimum_positive_concordance: 0.90
+  viability:
+    minimum_eligible_graphs: 80
+    preferred_edge_count_minimum: 10
+    preferred_edge_count_maximum: 20
+    maximum_density_caution: 0.70
+    minimum_raw_edge_stable_fraction: 0.80
+    minimum_variable_recurrent_edges: 5
+    maximum_median_raw_jaccard: 0.95
+    minimum_median_density_adjusted_z: 0.0
+
+visualization:
+  width: 9
+  height: 7
+  dpi: 160
+
+viability:
+  minimum_eligible_graphs: 80
+  minimum_unique_edge_fraction: 0.5
+  preferred_median_density_minimum: 0.05
+  preferred_median_density_maximum: 0.50
+  density_caution_threshold: 0.70

@@ -106,6 +106,13 @@ def construct_graph(
                 "positive_stability",
                 "stability_wilson_low",
                 "stability_wilson_high",
+                "p_phi_gt_zero",
+                "p_phi_ge_012",
+                "bootstrap_phi_median",
+                "bootstrap_phi_025",
+                "bootstrap_phi_975",
+                "selection_stability_wilson_low",
+                "selection_stability_wilson_high",
             ):
                 value = getattr(row, name, None)
                 if value is not None and pd.notna(value):
