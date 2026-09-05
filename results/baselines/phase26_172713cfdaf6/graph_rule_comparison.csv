@@ -1,0 +1,5 @@
+ses_definition,rule_id,graph_count,edge_count_minimum,edge_count_median,edge_count_maximum,density_minimum,density_median,density_maximum,fraction_in_preferred_edge_range,high_density_graph_count,median_edge_target_met,maximum_density_target_met
+education_binary,phi_010,94,15,22.5,31,0.3333333333333333,0.5,0.6888888888888889,0.24468085106382978,0,False,True
+education_binary,phi_012,94,10,18.0,27,0.2222222222222222,0.4,0.6,0.7553191489361702,0,True,True
+education_binary,phi_012_stable,94,2,11.0,21,0.044444444444444446,0.24444444444444444,0.4666666666666667,0.7127659574468085,0,True,True
+education_binary,phi_014,94,6,13.0,24,0.13333333333333333,0.28888888888888886,0.5333333333333333,0.8617021276595744,0,True,True

@@ -1,0 +1,37 @@
+{
+  "candidate_rule": "phi_012_stable",
+  "criteria": {
+    "adjustment_concordance": true,
+    "bootstrap_complete": true,
+    "enough_graphs": true,
+    "heterogeneous_but_comparable": true,
+    "meaningful_edge_count": true,
+    "moderate_density": true,
+    "most_raw_edges_stable": false,
+    "recurrent_edge_backbone": true,
+    "threshold_continuity": true
+  },
+  "decision": "HOLD",
+  "decision_basis": "Sparsity, selection stability, local threshold continuity, adjustment concordance, heterogeneity, and recurrence only.",
+  "diagnostics": {
+    "adjusted_fdr_supported_fraction": 0.9099826889786498,
+    "adjusted_positive_both_directions_fraction": 0.9994229659549914,
+    "graph_count": 94,
+    "maximum_density": 0.4666666666666667,
+    "maximum_edge_count": 21,
+    "median_density": 0.24444444444444444,
+    "median_density_adjusted_jaccard_z": 5.363806596418304,
+    "median_edge_count": 11.0,
+    "median_raw_jaccard": 0.5384615384615384,
+    "minimum_edge_count": 2,
+    "minimum_selection_stability_among_raw_edges": 0.442,
+    "raw_edge_stable_fraction": 0.6099249855741489,
+    "raw_phi_012_edge_count": 1733,
+    "stable_phi_012_edge_count": 1057,
+    "variable_recurrent_edge_count": 16
+  },
+  "phase_boundary": "Frequent subgraph mining is not implemented.",
+  "selection_threshold_fixed": true,
+  "ses_significance_used_for_selection": false,
+  "stability_threshold_fixed": true
+}

@@ -1,0 +1,103 @@
+graph_id,year,geography_code,geography,ses_definition,ses_category,n_unweighted,weighted_population_estimate,kish_effective_n,n_strata,n_psu,eligibility_status,stratum_eligibility_status
+2024_01_education_binary_lower,2024,1,Alabama,education_binary,lower,1747,1767123.4791202508,1029.0643566588815,32,1747,eligible,eligible
+2024_01_education_binary_higher,2024,1,Alabama,education_binary,higher,3331,2289224.873411157,2127.1728106886994,32,3331,eligible,eligible
+2024_02_education_binary_lower,2024,2,Alaska,education_binary,lower,1665,213654.9352923655,751.919291347211,32,1665,eligible,eligible
+2024_02_education_binary_higher,2024,2,Alaska,education_binary,higher,3800,346527.81918179826,1563.6091266389528,34,3800,eligible,eligible
+2024_04_education_binary_lower,2024,4,Arizona,education_binary,lower,2555,2192780.438675736,777.6595660941617,40,2555,eligible,eligible
+2024_04_education_binary_higher,2024,4,Arizona,education_binary,higher,5993,3760062.140502301,1895.3198772378423,41,5993,eligible,eligible
+2024_05_education_binary_lower,2024,5,Arkansas,education_binary,lower,2106,1126305.92440219,1269.5956544170654,17,2106,eligible,eligible
+2024_05_education_binary_higher,2024,5,Arkansas,education_binary,higher,3210,1273916.8807018145,1995.8277397641612,16,3210,eligible,eligible
+2024_06_education_binary_lower,2024,6,California,education_binary,lower,2536,11454238.772285284,1471.1327463442656,28,2536,eligible,eligible
+2024_06_education_binary_higher,2024,6,California,education_binary,higher,5797,19041264.215503752,2679.125435867049,27,5797,eligible,eligible
+2024_08_education_binary_lower,2024,8,Colorado,education_binary,lower,2617,1407667.44185125,1957.9174540389397,45,2617,eligible,eligible
+2024_08_education_binary_higher,2024,8,Colorado,education_binary,higher,8211,3308692.8095656955,6048.286811060391,55,8211,eligible,eligible
+2024_09_education_binary_lower,2024,9,Connecticut,education_binary,lower,1958,1038049.0971058925,996.1355979004968,35,1958,eligible,eligible
+2024_09_education_binary_higher,2024,9,Connecticut,education_binary,higher,5193,1863915.277963453,2734.0464334665076,40,5193,eligible,eligible
+2024_10_education_binary_lower,2024,10,Delaware,education_binary,lower,1349,328777.7729671034,650.6073209753836,12,1349,eligible,eligible
+2024_10_education_binary_higher,2024,10,Delaware,education_binary,higher,2995,511371.640078207,1375.0261659242403,13,2995,eligible,eligible
+2024_11_education_binary_lower,2024,11,District of Columbia,education_binary,lower,596,123663.77617232001,340.3222175320675,5,596,insufficient sample,insufficient sample
+2024_11_education_binary_higher,2024,11,District of Columbia,education_binary,higher,2583,438718.5468601504,1695.3378392803218,5,2583,paired SES stratum ineligible,eligible
+2024_12_education_binary_lower,2024,12,Florida,education_binary,lower,4379,7329115.894313465,1036.7520276736052,210,4379,eligible,eligible
+2024_12_education_binary_higher,2024,12,Florida,education_binary,higher,8633,11390032.978743833,2188.1128781209063,240,8633,eligible,eligible
+2024_13_education_binary_lower,2024,13,Georgia,education_binary,lower,2418,3484176.061540573,1060.5229114708488,83,2418,eligible,eligible
+2024_13_education_binary_higher,2024,13,Georgia,education_binary,higher,4805,5204231.645053592,2222.9533787684472,93,4805,eligible,eligible
+2024_15_education_binary_lower,2024,15,Hawaii,education_binary,lower,1885,402229.0328515718,960.574840331935,16,1885,eligible,eligible
+2024_15_education_binary_higher,2024,15,Hawaii,education_binary,higher,4732,731598.5682446372,2245.814417034935,16,4732,eligible,eligible
+2024_16_education_binary_lower,2024,16,Idaho,education_binary,lower,1637,566753.3904621894,846.2559953542789,28,1637,eligible,eligible
+2024_16_education_binary_higher,2024,16,Idaho,education_binary,higher,2693,977261.9832890714,1441.908508084135,28,2693,eligible,eligible
+2024_17_education_binary_lower,2024,17,Illinois,education_binary,lower,3682,3609283.8245509714,2347.6554468819745,50,3682,eligible,eligible
+2024_17_education_binary_higher,2024,17,Illinois,education_binary,higher,8264,6242711.3661557175,5195.347463432801,53,8264,eligible,eligible
+2024_18_education_binary_lower,2024,18,Indiana,education_binary,lower,4718,2367072.6220627753,2996.2250832617055,41,4718,eligible,eligible
+2024_18_education_binary_higher,2024,18,Indiana,education_binary,higher,8277,2982722.3676970475,5475.507755602477,41,8277,eligible,eligible
+2024_19_education_binary_lower,2024,19,Iowa,education_binary,lower,3328,953665.9732450545,1956.2237965728445,29,3328,eligible,eligible
+2024_19_education_binary_higher,2024,19,Iowa,education_binary,higher,5390,1555985.9503549011,3337.8985359141643,28,5390,eligible,eligible
+2024_20_education_binary_lower,2024,20,Kansas,education_binary,lower,3268,814644.8194462387,1720.3714708033478,39,3268,eligible,eligible
+2024_20_education_binary_higher,2024,20,Kansas,education_binary,higher,7590,1459808.064051657,4542.637582570952,39,7590,eligible,eligible
+2024_21_education_binary_lower,2024,21,Kentucky,education_binary,lower,3069,1609298.8677892587,1412.4119306071798,59,3069,eligible,eligible
+2024_21_education_binary_higher,2024,21,Kentucky,education_binary,higher,4354,1936374.5347241838,2008.8820964480537,59,4354,eligible,eligible
+2024_22_education_binary_lower,2024,22,Louisiana,education_binary,lower,1715,1649226.4179916596,1196.7703835082584,28,1715,eligible,eligible
+2024_22_education_binary_higher,2024,22,Louisiana,education_binary,higher,2812,1862364.2919029004,1889.9302944403225,28,2812,eligible,eligible
+2024_23_education_binary_lower,2024,23,Maine,education_binary,lower,3684,437862.32863452804,2027.2101333377814,64,3684,eligible,eligible
+2024_23_education_binary_higher,2024,23,Maine,education_binary,higher,8423,725592.1666201503,4636.618769279256,64,8423,eligible,eligible
+2024_24_education_binary_lower,2024,24,Maryland,education_binary,lower,4293,1695905.691828206,1943.0898228214621,17,4293,eligible,eligible
+2024_24_education_binary_higher,2024,24,Maryland,education_binary,higher,10060,3162209.519608372,4953.051330082285,17,10060,eligible,eligible
+2024_25_education_binary_lower,2024,25,Massachusetts,education_binary,lower,2407,1877092.2262665478,1448.0774544741696,38,2407,eligible,eligible
+2024_25_education_binary_higher,2024,25,Massachusetts,education_binary,higher,7012,3798851.2897846736,4474.181276278983,39,7012,eligible,eligible
+2024_26_education_binary_lower,2024,26,Michigan,education_binary,lower,3461,3029650.82284724,1619.1061023899174,55,3461,eligible,eligible
+2024_26_education_binary_higher,2024,26,Michigan,education_binary,higher,7896,4922420.4617929775,3983.5438094240053,58,7896,eligible,eligible
+2024_27_education_binary_lower,2024,27,Minnesota,education_binary,lower,3796,1433682.764220737,2366.5996959991594,19,3796,eligible,eligible
+2024_27_education_binary_higher,2024,27,Minnesota,education_binary,higher,11320,3049769.3374483963,7480.149853497428,21,11320,eligible,eligible
+2024_28_education_binary_lower,2024,28,Mississippi,education_binary,lower,999,1015046.9713624667,629.7674727105392,33,999,insufficient sample,insufficient sample
+2024_28_education_binary_higher,2024,28,Mississippi,education_binary,higher,1975,1265628.1240552538,1211.2517073642266,33,1975,paired SES stratum ineligible,eligible
+2024_29_education_binary_lower,2024,29,Missouri,education_binary,lower,2654,1960542.4577685364,1389.1519860299213,44,2654,eligible,eligible
+2024_29_education_binary_higher,2024,29,Missouri,education_binary,higher,4630,2921910.05116975,2499.145587114158,47,4630,eligible,eligible
+2024_30_education_binary_lower,2024,30,Montana,education_binary,lower,1934,327175.7462438034,1235.6071405913256,23,1934,eligible,eligible
+2024_30_education_binary_higher,2024,30,Montana,education_binary,higher,4862,593710.7976748479,3000.783502257326,23,4862,eligible,eligible
+2024_31_education_binary_lower,2024,31,Nebraska,education_binary,lower,4788,529792.8821209782,2250.515294864432,84,4788,eligible,eligible
+2024_31_education_binary_higher,2024,31,Nebraska,education_binary,higher,7859,993022.9338147017,3976.8806006961954,84,7859,eligible,eligible
+2024_32_education_binary_lower,2024,32,Nevada,education_binary,lower,802,1081119.81428569,382.2542063341335,12,802,insufficient sample,insufficient sample
+2024_32_education_binary_higher,2024,32,Nevada,education_binary,higher,1849,1460649.5862460856,669.8545534984244,13,1849,paired SES stratum ineligible,eligible
+2024_33_education_binary_lower,2024,33,New Hampshire,education_binary,lower,1774,399963.9394737753,752.1485143722185,44,1774,eligible,eligible
+2024_33_education_binary_higher,2024,33,New Hampshire,education_binary,higher,5169,761648.8632875538,2177.6596047464554,44,5169,eligible,eligible
+2024_34_education_binary_lower,2024,34,New Jersey,education_binary,lower,2562,2649371.9217330497,1375.1070022580977,26,2562,eligible,eligible
+2024_34_education_binary_higher,2024,34,New Jersey,education_binary,higher,5993,4650152.57279034,3160.4830058111843,29,5993,eligible,eligible
+2024_35_education_binary_lower,2024,35,New Mexico,education_binary,lower,1136,680870.8672405959,542.8621097429867,22,1136,eligible,eligible
+2024_35_education_binary_higher,2024,35,New Mexico,education_binary,higher,2247,985838.6983422602,927.6900535729361,23,2247,eligible,eligible
+2024_36_education_binary_lower,2024,36,New York,education_binary,lower,14299,5750332.378887327,5674.972134479502,230,14299,eligible,eligible
+2024_36_education_binary_higher,2024,36,New York,education_binary,higher,29310,9621094.602646858,11160.789816107823,248,29310,eligible,eligible
+2024_37_education_binary_lower,2024,37,North Carolina,education_binary,lower,1342,3247399.289531606,924.8797638796066,13,1342,eligible,eligible
+2024_37_education_binary_higher,2024,37,North Carolina,education_binary,higher,2960,5459736.264063175,2078.2171271473208,14,2960,eligible,eligible
+2024_38_education_binary_lower,2024,38,North Dakota,education_binary,lower,1770,198881.2684100977,994.9966106420802,4,1770,eligible,eligible
+2024_38_education_binary_higher,2024,38,North Dakota,education_binary,higher,4069,407616.40247219446,2613.831207062685,4,4069,eligible,eligible
+2024_39_education_binary_lower,2024,39,Ohio,education_binary,lower,3784,3942732.1108005126,1693.9230566236724,59,3784,eligible,eligible
+2024_39_education_binary_higher,2024,39,Ohio,education_binary,higher,6350,5343166.726885438,3083.7716975344806,57,6350,eligible,eligible
+2024_40_education_binary_lower,2024,40,Oklahoma,education_binary,lower,2399,1377727.5273168432,1789.8035377723038,23,2399,eligible,eligible
+2024_40_education_binary_higher,2024,40,Oklahoma,education_binary,higher,4640,1775143.7919750924,3474.207187835976,26,4640,eligible,eligible
+2024_41_education_binary_lower,2024,41,Oregon,education_binary,lower,1751,1124236.49456104,1266.2942585239007,4,1751,eligible,eligible
+2024_41_education_binary_higher,2024,41,Oregon,education_binary,higher,4371,2286236.2037291513,3085.875119932635,5,4371,eligible,eligible
+2024_42_education_binary_lower,2024,42,Pennsylvania,education_binary,lower,1270,4440885.492662115,672.6166465977429,29,1270,eligible,eligible
+2024_42_education_binary_higher,2024,42,Pennsylvania,education_binary,higher,2227,5935573.484570947,1183.4251633014092,31,2227,eligible,eligible
+2024_44_education_binary_lower,2024,44,Rhode Island,education_binary,lower,1547,344951.35020815296,874.5941582743703,16,1547,eligible,eligible
+2024_44_education_binary_higher,2024,44,Rhode Island,education_binary,higher,3889,549085.1643150706,2148.1555638105465,19,3889,eligible,eligible
+2024_45_education_binary_lower,2024,45,South Carolina,education_binary,lower,3099,1751959.5723651028,1047.7923822046807,64,3099,eligible,eligible
+2024_45_education_binary_higher,2024,45,South Carolina,education_binary,higher,6319,2611058.1626568246,2202.0190265889314,67,6319,eligible,eligible
+2024_46_education_binary_lower,2024,46,South Dakota,education_binary,lower,1742,275346.20757370605,295.6681344471387,40,1742,eligible,eligible
+2024_46_education_binary_higher,2024,46,South Dakota,education_binary,higher,4085,440365.4332388571,671.7238562297061,40,4085,eligible,eligible
+2024_47_education_binary_lower,2024,47,Tennessee,education_binary,lower,0,0.0,,0,0,no reporting data,no reporting data
+2024_47_education_binary_higher,2024,47,Tennessee,education_binary,higher,0,0.0,,0,0,no reporting data,no reporting data
+2024_48_education_binary_lower,2024,48,Texas,education_binary,lower,3937,9637321.041648518,1199.6741432739143,86,3937,eligible,eligible
+2024_48_education_binary_higher,2024,48,Texas,education_binary,higher,8268,13937209.437036429,2629.8350880007556,92,8268,eligible,eligible
+2024_49_education_binary_lower,2024,49,Utah,education_binary,lower,3863,828720.3330767241,2191.5814266343473,51,3863,eligible,eligible
+2024_49_education_binary_higher,2024,49,Utah,education_binary,higher,8882,1734039.1454278072,5185.42341107576,53,8882,eligible,eligible
+2024_50_education_binary_lower,2024,50,Vermont,education_binary,lower,1484,182007.9534789658,899.8185068759475,43,1484,eligible,eligible
+2024_50_education_binary_higher,2024,50,Vermont,education_binary,higher,5004,353696.77835692256,3143.4605163852284,49,5004,eligible,eligible
+2024_51_education_binary_lower,2024,51,Virginia,education_binary,lower,1902,2395204.445103675,860.7017016981456,84,1902,eligible,eligible
+2024_51_education_binary_higher,2024,51,Virginia,education_binary,higher,4937,4532942.731241265,2261.1273207622908,105,4937,eligible,eligible
+2024_53_education_binary_lower,2024,53,Washington,education_binary,lower,6573,2004970.2678889353,4167.2291717089565,91,6573,eligible,eligible
+2024_53_education_binary_higher,2024,53,Washington,education_binary,higher,19038,4205144.745568908,11778.233327379865,99,19038,eligible,eligible
+2024_54_education_binary_lower,2024,54,West Virginia,education_binary,lower,2340,725354.9641765121,1587.1597554965726,4,2340,eligible,eligible
+2024_54_education_binary_higher,2024,54,West Virginia,education_binary,higher,3465,698093.1435300009,2376.2167044606354,4,3465,eligible,eligible
+2024_55_education_binary_lower,2024,55,Wisconsin,education_binary,lower,4236,1789868.0991731694,2085.6884501453865,41,4236,eligible,eligible
+2024_55_education_binary_higher,2024,55,Wisconsin,education_binary,higher,8816,2919706.02442142,4146.356817016462,43,8816,eligible,eligible
+2024_56_education_binary_lower,2024,56,Wyoming,education_binary,lower,1347,165545.66860098706,773.609819802342,4,1347,eligible,eligible
+2024_56_education_binary_higher,2024,56,Wyoming,education_binary,higher,3238,295724.1174156895,1942.0937175362676,4,3238,eligible,eligible

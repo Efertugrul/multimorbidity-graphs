@@ -273,6 +273,23 @@ density-adjusted similarity, recurrent edge support, figures, and a neutral
 neither SES separation nor adjusted-model significance is used to tune the
 graph rule.
 
+## Phase 2.6 calibration result
+
+The completed `172713cfdaf6` run returned **HOLD before gSpan**. Eight of nine
+technical criteria passed, but only 1,057 of 1,733 raw `phi >= 0.12` edges
+met the fixed 0.90 bootstrap-stability rule, a retention fraction of 0.610
+versus the prespecified 0.80 gate.
+
+Instability was concentrated near the cutoff: 560 of 676 unstable edges had
+point `phi < 0.15`. This supports a prespecified stronger-threshold experiment,
+not post hoc promotion of `.15`. The current diagnostic estimates
+`P_boot(phi >= 0.12)`; a `.15` graph must be evaluated with newly computed
+`P_boot(phi >= 0.15)` while keeping both stability gates unchanged.
+
+The aggregate evidence, figures, checksums, and interpretation are frozen in
+[`results/baselines/phase26_172713cfdaf6/`](results/baselines/phase26_172713cfdaf6/).
+No frequent subgraph mining has been run.
+
 ## Reproducibility
 
 Output directories are deterministic hashes of all three configuration files.

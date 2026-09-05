@@ -1,0 +1,45 @@
+{
+  "cutoff_diagnostics": {
+    "phi_ge_014": {
+      "fraction_of_all_unstable_edges_below_cutoff": 0.5976331360946746,
+      "raw_edge_count": 1327,
+      "stable_edge_count": 1055,
+      "stable_fraction_against_phi_012": 0.7950263752825923,
+      "unstable_edges_below_cutoff": 404
+    },
+    "phi_ge_015": {
+      "fraction_of_all_unstable_edges_below_cutoff": 0.8284023668639053,
+      "raw_edge_count": 1137,
+      "stable_edge_count": 1021,
+      "stable_fraction_against_phi_012": 0.8979771328056289,
+      "unstable_edges_below_cutoff": 560
+    },
+    "phi_ge_016": {
+      "fraction_of_all_unstable_edges_below_cutoff": 0.9289940828402367,
+      "raw_edge_count": 982,
+      "stable_edge_count": 934,
+      "stable_fraction_against_phi_012": 0.9511201629327902,
+      "unstable_edges_below_cutoff": 628
+    },
+    "phi_ge_018": {
+      "fraction_of_all_unstable_edges_below_cutoff": 0.9837278106508875,
+      "raw_edge_count": 692,
+      "stable_edge_count": 681,
+      "stable_fraction_against_phi_012": 0.9841040462427746,
+      "unstable_edges_below_cutoff": 665
+    },
+    "phi_ge_020": {
+      "fraction_of_all_unstable_edges_below_cutoff": 0.9985207100591716,
+      "raw_edge_count": 436,
+      "stable_edge_count": 435,
+      "stable_fraction_against_phi_012": 0.9977064220183486,
+      "unstable_edges_below_cutoff": 675
+    }
+  },
+  "interpretation_boundary": "All stability fractions remain relative to P_boot(phi >= 0.12). A new 0.15 rule requires P_boot(phi >= 0.15) and cannot be validated from this diagnostic.",
+  "point_phi_selection_stability_spearman": 0.891697162147299,
+  "raw_edge_stable_fraction": 0.6099249855741489,
+  "raw_phi_012_edge_count": 1733,
+  "stable_phi_012_edge_count": 1057,
+  "unstable_phi_012_edge_count": 676
+}

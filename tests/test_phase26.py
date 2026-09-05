@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -81,6 +82,38 @@ def test_phase26_configuration_is_fixed() -> None:
     ]
     assert settings["bootstrap"]["replicates"] == 500
     assert settings["bootstrap"]["selection_stability_threshold"] == 0.90
+
+
+def test_phase26_archived_result_is_frozen() -> None:
+    archive = Path("results/baselines/phase26_172713cfdaf6")
+    manifest = json.loads(
+        (archive / "manifest.json").read_text(encoding="utf-8")
+    )
+    report = json.loads(
+        (archive / "viability_report.json").read_text(encoding="utf-8")
+    )
+    diagnostic = json.loads(
+        (archive / "point_phi_stability_diagnostic.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert manifest["config_digest"] == "172713cfdaf6"
+    assert manifest["git_commit"].startswith("6663f67")
+    assert manifest["git_dirty"] is False
+    assert report["decision"] == "HOLD"
+    assert report["criteria"]["most_raw_edges_stable"] is False
+    assert report["diagnostics"]["raw_phi_012_edge_count"] == 1733
+    assert report["diagnostics"]["stable_phi_012_edge_count"] == 1057
+    assert np.isclose(
+        diagnostic["point_phi_selection_stability_spearman"],
+        0.891697162147299,
+    )
+    assert (
+        diagnostic["cutoff_diagnostics"]["phi_ge_015"][
+            "unstable_edges_below_cutoff"
+        ]
+        == 560
+    )
 
 
 def test_stable_phi_rule_uses_point_and_selection_thresholds() -> None:

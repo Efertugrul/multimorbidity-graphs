@@ -1,0 +1,43 @@
+{
+  "adjusted_models_role": "validation_only",
+  "bootstrap_replicates": 500,
+  "condition_registry_version": "0.1.0",
+  "config_digest": "172713cfdaf6",
+  "dataset_year": 2024,
+  "decision_excludes_ses_significance": true,
+  "edge_estimator": "phase26_phi_stability",
+  "edge_semantics": "Undirected survey-weighted phi association; not causal or directional",
+  "edge_threshold": 0.12,
+  "eligible_population_graphs": 94,
+  "git_commit": "6663f67b0544583b46005bceb2b236e8775fcbeb",
+  "git_dirty": false,
+  "gspan_support": null,
+  "harmonized_cache_key": "723ca55b61346807",
+  "minimum_graph_sample_size": 1000,
+  "multiple_testing_rule": "not used for descriptive Phase 2 graph thresholding",
+  "phase": "phase26",
+  "phase25_baseline_config_digest": "fff54b040741",
+  "phase_boundary": "Stopped before frequent subgraph mining",
+  "phi_bootstrap_cache_key": "70bb59a31c131a04",
+  "point_phi_threshold": 0.12,
+  "population_definition": "available US state \u00d7 education-primary SES",
+  "r_runtime": {
+    "data_table": "1.18.4",
+    "r": "R version 4.4.3 (2025-02-28)",
+    "rscript": "/home/ubuntu/locdev/PHS-abstract/.conda/r-survey/bin/Rscript",
+    "survey": "4.5"
+  },
+  "random_seed": 20240902,
+  "selection_stability_threshold": 0.9,
+  "software_version": "0.3.0",
+  "source_data_sha256": "7d53cf088f858e02bcc029a51cf0408cc68f40a0ebeb02a3c0f73058aab36b1c",
+  "source_tree_sha256": "6dca9c0c79f056a2076dde15a3ceaf2f532106874098d7b8f348b9d49c773606",
+  "survey_adjust_domain_lonely": true,
+  "survey_lonely_psu": "adjust",
+  "threshold_neighborhood": [
+    0.1,
+    0.12,
+    0.14
+  ],
+  "timestamp_utc": "2026-09-05T16:25:29.357999+00:00"
+}

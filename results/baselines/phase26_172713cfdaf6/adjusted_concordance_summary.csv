@@ -1,0 +1,3 @@
+rule_id,selected_edge_count,adjusted_model_match_count,adjusted_positive_forward_count,adjusted_positive_forward_fraction,adjusted_positive_both_directions_count,adjusted_positive_both_directions_fraction,adjusted_fdr_supported_count,adjusted_fdr_supported_fraction
+phi_012,1733,1733,1732,0.9994229659549914,1732,0.9994229659549914,1577,0.9099826889786498
+phi_012_stable,1057,1057,1057,1.0,1057,1.0,1024,0.9687795648060549

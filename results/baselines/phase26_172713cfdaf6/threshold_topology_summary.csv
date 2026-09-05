@@ -1,0 +1,4 @@
+transition_type,from_rule_id,to_rule_id,from_threshold,to_threshold,graph_count,median_edge_jaccard,minimum_edge_jaccard,q10_edge_jaccard,fraction_edge_jaccard_below_050,median_edges_removed,total_edges_removed,median_degree_spearman,fraction_component_count_changed,all_graphs_nested
+adjacent,phi_010,phi_012,0.1,0.12,94,0.8086080586080586,0.5263157894736842,0.7058823529411765,0.0,4.0,422,0.9146631481838405,0.10638297872340426,True
+adjacent,phi_012,phi_014,0.12,0.14,94,0.7647058823529411,0.5454545454545454,0.631578947368421,0.0,4.0,406,0.8978146789687038,0.3617021276595745,True
+outer,phi_010,phi_014,0.1,0.14,94,0.6190476190476191,0.39285714285714285,0.5,0.0851063829787234,9.0,828,0.8318380740170859,0.43617021276595747,True
