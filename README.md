@@ -4,9 +4,9 @@ This repository builds population-specific multimorbidity association graphs
 from BRFSS data to evaluate whether frequent subgraph mining is a viable next
 step for identifying socioeconomic signatures of multimorbidity.
 
-Current scope: Phases 0–2.6 only. Phase 2.6 is the final education-primary
-stability gate before gSpan. The code intentionally stops before motif
-discovery, discriminative motif testing, and replication.
+Current scope: Phases 0–3. Phase 3 performs exploratory frequent-subgraph
+discovery, motif robustness checks, density nulls, and paired SES comparison.
+The code intentionally stops before confirmatory claims and 2023 replication.
 
 ## Scientific boundary
 
@@ -135,6 +135,40 @@ continuity; they are not candidate thresholds for post hoc selection. Frozen
 Phase 2.5 adjusted models validate whether retained phi edges remain positive
 after age/sex adjustment. They do not generate or filter Phase 2.6 graphs.
 
+## Run Phase 3
+
+Phase 3 mines the frozen bootstrap-stable `.12` graphs:
+
+```bash
+multimorbidity-motifs phase3 --workers 8
+```
+
+The graph definition remains point `phi >= 0.12` and
+`P_boot(phi >= 0.12) >= 0.90`. The failed Phase 2.6 80% raw-edge retention
+criterion remains recorded as **HOLD**, while structural feasibility is
+recorded separately as **GO**.
+
+The gBolt gSpan backend mines connected, undirected, non-induced motifs of
+3–5 nodes at pooled support levels of 10%, 20%, and 30% (10, 19, and 29 of
+94 graphs). Node labels are canonical diseases and every edge has one
+association label.
+
+Phase 3 retains replicate-specific phi-threshold edge masks. In the primary
+robustness analysis, frozen stable edges may drop when their replicate phi
+falls below `.12`, but unselected edges cannot enter. gSpan is rerun on all
+500 aligned survey-bootstrap graph realizations. A separate raw-threshold
+sensitivity analysis allows every eligible edge crossing `.12` to enter.
+Neither analysis performs a computationally prohibitive nested re-estimation
+of the 0.90 stability filter.
+
+Density diagnostics use fixed-node/fixed-edge-count null graphs with
+degree-preserving edge swaps as a sensitivity analysis.
+
+SES comparisons are exploratory, use density-residualized motif occurrence,
+and swap lower/higher labels only within paired jurisdictions. MaxT and BH
+adjustments are reported. Motif discovery never uses SES labels, and frozen
+motifs still require 2023 replication.
+
 ## Configuration
 
 - `configs/conditions.yaml`: year-specific condition registry and coding rules
@@ -147,6 +181,8 @@ after age/sex adjustment. They do not generate or filter Phase 2.6 graphs.
   and neutral GO/HOLD criteria
 - `configs/graph_phase26.yaml`: fixed phi stability, threshold-neighborhood,
   adjustment-concordance, and final gate criteria
+- `configs/graph_phase3.yaml`: frozen graph input, gSpan support spectrum,
+  motif bootstrap, density nulls, and paired SES permutation settings
 
 The provisional default uses ten conditions, California, Florida, Michigan,
 New York, and Texas, and two education strata:
@@ -288,7 +324,22 @@ not post hoc promotion of `.15`. The current diagnostic estimates
 
 The aggregate evidence, figures, checksums, and interpretation are frozen in
 [`results/baselines/phase26_172713cfdaf6/`](results/baselines/phase26_172713cfdaf6/).
-No frequent subgraph mining has been run.
+That archive itself stops before frequent subgraph mining.
+
+## Phase 3 outputs
+
+Exploratory motif outputs are written to:
+
+```text
+results/phase3/year=2024/run=<configuration digest>/full/
+```
+
+They include the gSpan database and label mapping, motif and redundancy
+catalogs, support spectra, replicate-specific edge masks, motif-support
+bootstrap distributions, gSpan discovery-set stability, fixed-density and
+degree-preserving nulls, paired density-adjusted SES permutations, figures,
+and an explicit exploratory report. Selection-conditional null probabilities
+are diagnostics rather than confirmatory p-values.
 
 ## Reproducibility
 

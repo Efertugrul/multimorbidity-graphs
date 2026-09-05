@@ -112,6 +112,17 @@ process_state <- function(state_value) {
         } else {
           NA_real_
         },
+        bootstrap_selection_mask = paste0(
+          "b",
+          paste(
+            ifelse(
+              is.finite(values),
+              ifelse(values >= selection_threshold, "1", "0"),
+              "x"
+            ),
+            collapse = ""
+          )
+        ),
         bootstrap_phi_median = interval[[2]],
         bootstrap_phi_025 = interval[[1]],
         bootstrap_phi_975 = interval[[3]],
@@ -149,13 +160,20 @@ checkpoint_valid <- function(state_value) {
     "bootstrap_status" %in% names(saved) &&
     all(saved$bootstrap_status %in% c("ok", "partial")) &&
     all(saved$bootstrap_replicates_valid > 0) &&
-    all(saved$bootstrap_replicates_valid <= replicate_count)
+    all(saved$bootstrap_replicates_valid <= replicate_count) &&
+    "bootstrap_selection_mask" %in% names(saved) &&
+    all(nchar(saved$bootstrap_selection_mask) == replicate_count + 1L) &&
+    all(substr(saved$bootstrap_selection_mask, 1L, 1L) == "b")
 }
 state_failure <- function(state_value, value) {
   failed <- copy(jobs[jobs$state_code == state_value])
   failed[, `:=`(
     p_phi_gt_zero = NA_real_,
     p_phi_ge_012 = NA_real_,
+    bootstrap_selection_mask = paste0(
+      "b",
+      paste(rep("x", replicate_count), collapse = "")
+    ),
     bootstrap_phi_median = NA_real_,
     bootstrap_phi_025 = NA_real_,
     bootstrap_phi_975 = NA_real_,

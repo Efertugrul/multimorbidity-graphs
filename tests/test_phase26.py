@@ -389,3 +389,6 @@ def test_phi_bootstrap_r_smoke(tmp_path: Path) -> None:
     assert len(result) == 2
     assert result["bootstrap_status"].eq("ok").all()
     assert result["bootstrap_replicates_valid"].eq(20).all()
+    assert result["bootstrap_selection_mask"].str.match(
+        r"^b[01]{20}$"
+    ).all()

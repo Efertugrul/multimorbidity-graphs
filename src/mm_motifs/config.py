@@ -61,6 +61,7 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
         "weighted_phi",
         "phase25_scenarios",
         "phase26_phi_stability",
+        "phase3_gspan",
     }:
         raise ValueError(f"Unsupported estimator configuration: {estimator_name}")
     if estimator_name == "phase25_scenarios":
@@ -120,6 +121,60 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
         stability = float(bootstrap["selection_stability_threshold"])
         if not 0 < stability <= 1:
             raise ValueError("Phase 2.6 stability threshold must be in (0, 1]")
+    if estimator_name == "phase3_gspan":
+        phase25 = analysis.get("phase25")
+        phase3 = graph.get("phase3")
+        if not phase25 or not phase3:
+            raise ValueError("Phase 3 requires all-state population settings")
+        if (
+            phase3["primary_ses_definition"]
+            != phase25["primary_ses_definition"]
+        ):
+            raise ValueError("Phase 3 SES must match the Phase 2.6 primary SES")
+        definition = phase3["graph_definition"]
+        if (
+            float(definition["point_phi_threshold"]) != 0.12
+            or float(definition["bootstrap_selection_threshold"]) != 0.12
+            or float(definition["minimum_selection_stability"]) != 0.90
+        ):
+            raise ValueError("Phase 3 must use the frozen stable 0.12 graph")
+        mining = phase3["mining"]
+        fractions = [
+            float(value) for value in mining["support_fractions"]
+        ]
+        if fractions != [0.10, 0.20, 0.30]:
+            raise ValueError("Phase 3 support levels must be 10%, 20%, 30%")
+        if float(mining["primary_support_fraction"]) not in fractions:
+            raise ValueError("Primary motif support must be in the spectrum")
+        if (
+            int(mining["minimum_nodes"]) != 3
+            or int(mining["maximum_nodes"]) != 5
+        ):
+            raise ValueError("Phase 3 motifs must contain 3–5 nodes")
+        if (
+            mining["backend"] != "fast_gspan"
+            or str(mining["backend_version"]) != "0.1.3"
+            or mining["connected"] is not True
+            or mining["induced"] is not False
+            or mining["undirected"] is not True
+        ):
+            raise ValueError("Phase 3 requires undirected non-induced gSpan")
+        bootstrap = phase3["bootstrap"]
+        if (
+            int(bootstrap["replicates"]) != 500
+            or float(bootstrap["threshold"]) != 0.12
+            or bootstrap["discovery_reruns"] is not True
+            or bootstrap["raw_threshold_sensitivity_reruns"] is not True
+        ):
+            raise ValueError("Phase 3 requires 500 phi 0.12 realizations")
+        density_null = phase3["density_null"]
+        if (
+            int(density_null["fixed_edge_replicates"]) < 2
+            or int(density_null["degree_preserving_replicates"]) < 2
+        ):
+            raise ValueError("Phase 3 density nulls require replication")
+        if int(phase3["ses_permutation"]["permutations"]) < 2:
+            raise ValueError("Phase 3 SES permutation requires replication")
 
     names: set[str] = set()
     required_years = {

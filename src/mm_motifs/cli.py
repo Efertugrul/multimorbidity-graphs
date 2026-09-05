@@ -8,6 +8,7 @@ from mm_motifs.data.download import download_brfss
 from mm_motifs.workflows.audit import run_audit
 from mm_motifs.workflows.phase25 import run_phase25
 from mm_motifs.workflows.phase26 import run_phase26
+from mm_motifs.workflows.phase3 import run_phase3
 from mm_motifs.workflows.prototype import run_prototype
 
 
@@ -26,7 +27,7 @@ def _add_config_arguments(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="multimorbidity-motifs",
-        description="BRFSS multimorbidity graph Phases 0–2.6",
+        description="BRFSS multimorbidity graph Phases 0–3",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -76,6 +77,17 @@ def build_parser() -> argparse.ArgumentParser:
         graph_default="configs/graph_phase26.yaml",
     )
     phase26.add_argument("--workers", type=int, default=4)
+
+    phase3 = subparsers.add_parser(
+        "phase3",
+        help="Run exploratory stable-graph motif analysis",
+    )
+    _add_config_arguments(
+        phase3,
+        analysis_default="configs/analysis_phase25.yaml",
+        graph_default="configs/graph_phase3.yaml",
+    )
+    phase3.add_argument("--workers", type=int, default=4)
     return parser
 
 
@@ -123,6 +135,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "phase26":
         print(
             run_phase26(
+                config,
+                verbose=args.verbose,
+                workers=max(1, args.workers),
+            )
+        )
+    elif args.command == "phase3":
+        print(
+            run_phase3(
                 config,
                 verbose=args.verbose,
                 workers=max(1, args.workers),

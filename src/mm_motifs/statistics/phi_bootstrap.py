@@ -22,6 +22,7 @@ RESULT_COLUMNS = [
     "point_phi",
     "p_phi_gt_zero",
     "p_phi_ge_012",
+    "bootstrap_selection_mask",
     "bootstrap_phi_median",
     "bootstrap_phi_025",
     "bootstrap_phi_975",
@@ -73,12 +74,21 @@ def _valid_results(
         return False
     expected = jobs[keys].astype(str).agg("\r".join, axis=1).sort_values()
     observed = result[keys].astype(str).agg("\r".join, axis=1).sort_values()
+    masks = result["bootstrap_selection_mask"].astype(str)
+    mask_values = masks.str.removeprefix("b")
     return (
         len(result) == len(jobs)
         and expected.tolist() == observed.tolist()
         and result["bootstrap_status"].isin(["ok", "partial"]).all()
+        and result["bootstrap_replicates_requested"].eq(replicates).all()
         and result["bootstrap_replicates_valid"].gt(0).all()
         and result["bootstrap_replicates_valid"].le(replicates).all()
+        and masks.str.startswith("b").all()
+        and mask_values.str.len().eq(replicates).all()
+        and mask_values.str.fullmatch(r"[01x]+").all()
+        and mask_values.str.count(r"[01]").eq(
+            result["bootstrap_replicates_valid"]
+        ).all()
     )
 
 
