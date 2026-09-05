@@ -1,0 +1,9 @@
+2026-09-05 18:08:58,079 INFO Loaded 94 frozen stable graphs
+2026-09-05 18:08:58,461 INFO Mined 1098 pooled motifs
+2026-09-05 18:08:58,461 INFO Using frozen-run harmonized survey cache
+2026-09-05 18:09:01,105 INFO Evaluated motif support across 500 graph realizations
+2026-09-05 18:09:34,791 INFO Completed frozen-edge bootstrap gSpan reruns
+2026-09-05 18:14:11,223 INFO Completed raw-threshold discovery sensitivity
+2026-09-05 18:15:17,685 INFO Completed fixed-density and degree-preserving nulls
+2026-09-05 18:15:17,872 INFO Completed paired density-adjusted SES permutations
+2026-09-05 18:15:19,317 INFO Phase 3 complete: /home/ubuntu/locdev/PHS-abstract/results/phase3/year=2024/run=b755affa0537/full

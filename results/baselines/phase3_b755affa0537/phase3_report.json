@@ -1,0 +1,111 @@
+{
+  "automatic_motif_go_gate": null,
+  "bootstrap_boundary": "Primary realizations only allow frozen stable edges to drop at the phi 0.12 threshold. All eligible threshold-crossing edges are evaluated separately; the 0.90 filter is not nested.",
+  "closed_motif_count": 518,
+  "degree_null_positive_z_fraction": 0.9462659380692168,
+  "discovery_set_stability": [
+    {
+      "bootstrap_replicates": 500,
+      "median_baseline_retention": 0.9289617486338798,
+      "median_discovered_motif_count": 1020.0,
+      "median_discovery_set_jaccard": 0.9289617486338798,
+      "median_novel_motif_count": 0.0,
+      "q025_baseline_retention": 0.8478597449908926,
+      "q975_baseline_retention": 0.9813524590163935,
+      "support_fraction": 0.1
+    },
+    {
+      "bootstrap_replicates": 500,
+      "median_baseline_retention": 0.9501845018450185,
+      "median_discovered_motif_count": 515.0,
+      "median_discovery_set_jaccard": 0.9501845018450185,
+      "median_novel_motif_count": 0.0,
+      "q025_baseline_retention": 0.884640221402214,
+      "q975_baseline_retention": 0.996309963099631,
+      "support_fraction": 0.2
+    },
+    {
+      "bootstrap_replicates": 500,
+      "median_baseline_retention": 0.9283625730994152,
+      "median_discovered_motif_count": 317.5,
+      "median_discovery_set_jaccard": 0.9283625730994152,
+      "median_novel_motif_count": 0.0,
+      "q025_baseline_retention": 0.8538011695906432,
+      "q975_baseline_retention": 0.97953216374269,
+      "support_fraction": 0.3
+    }
+  ],
+  "exploratory_ses_max_t_p_below_005": 3,
+  "exploratory_ses_motif_count": 542,
+  "fixed_edge_null_positive_z_fraction": 1.0,
+  "frozen_graph_definition": "point phi >= 0.12 and P_boot(phi >= 0.12) >= 0.90",
+  "graph_count": 94,
+  "graphs_with_at_least_five_edges": 92,
+  "graphs_with_five_node_connected_component": 90,
+  "graphs_with_triangles": 85,
+  "interpretation": "Motif discovery, robustness, density nulls, and SES comparisons are exploratory. Density-null p-values are selection-conditional; 2023 replication remains required.",
+  "maximal_motif_count": 114,
+  "maximum_edge_count": 21,
+  "mean_edge_count": 11.24468085106383,
+  "minimum_edge_count": 2,
+  "motif_count_total": 1098,
+  "occurrence_class_count": 448,
+  "phase26_retention_decision": "HOLD",
+  "phase3_status": "EXPLORATORY_COMPLETE",
+  "primary_motif_count": 542,
+  "primary_motif_probability_ge_080_count": 497,
+  "primary_motif_probability_ge_080_fraction": 0.9169741697416974,
+  "primary_motif_probability_ge_090_count": 479,
+  "primary_motif_probability_ge_090_fraction": 0.8837638376383764,
+  "primary_motif_probability_median": 1.0,
+  "primary_support_fraction": 0.2,
+  "raw_threshold_sensitivity": [
+    {
+      "bootstrap_replicates": 500,
+      "median_baseline_retention": 1.0,
+      "median_discovered_motif_count": 11596.0,
+      "median_discovery_set_jaccard": 0.09468785789173353,
+      "median_novel_motif_count": 10498.0,
+      "q025_baseline_retention": 1.0,
+      "q975_baseline_retention": 1.0,
+      "support_fraction": 0.1
+    },
+    {
+      "bootstrap_replicates": 500,
+      "median_baseline_retention": 1.0,
+      "median_discovered_motif_count": 4930.0,
+      "median_discovery_set_jaccard": 0.10993914807302231,
+      "median_novel_motif_count": 4388.0,
+      "q025_baseline_retention": 1.0,
+      "q975_baseline_retention": 1.0,
+      "support_fraction": 0.2
+    },
+    {
+      "bootstrap_replicates": 500,
+      "median_baseline_retention": 1.0,
+      "median_discovered_motif_count": 2131.0,
+      "median_discovery_set_jaccard": 0.16048803378695448,
+      "median_novel_motif_count": 1789.0,
+      "q025_baseline_retention": 1.0,
+      "q975_baseline_retention": 1.0,
+      "support_fraction": 0.3
+    }
+  ],
+  "shape_summary_rows": 9,
+  "stability_summary_rows": 9,
+  "structural_feasibility_decision": "GO",
+  "support_spectrum": {
+    "10%": {
+      "minimum_graphs": 10,
+      "motif_count": 1098
+    },
+    "20%": {
+      "minimum_graphs": 19,
+      "motif_count": 542
+    },
+    "30%": {
+      "minimum_graphs": 29,
+      "motif_count": 342
+    }
+  }
+}

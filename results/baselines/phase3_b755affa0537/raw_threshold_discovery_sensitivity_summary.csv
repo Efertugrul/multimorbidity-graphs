@@ -1,0 +1,4 @@
+support_fraction,bootstrap_replicates,median_discovered_motif_count,median_baseline_retention,q025_baseline_retention,q975_baseline_retention,median_discovery_set_jaccard,median_novel_motif_count
+0.1,500,11596.0,1.0,1.0,1.0,0.09468785789173353,10498.0
+0.2,500,4930.0,1.0,1.0,1.0,0.10993914807302231,4388.0
+0.3,500,2131.0,1.0,1.0,1.0,0.16048803378695448,1789.0

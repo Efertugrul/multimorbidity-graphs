@@ -1,0 +1,63 @@
+{
+  "bootstrap_alignment": "Lower/higher domains share state replicate weights; equal replicate indices combine independent states",
+  "bootstrap_graph_estimand": "Frozen stable edges retained when their aligned survey bootstrap phi remains at least 0.12",
+  "bootstrap_replicates": 500,
+  "condition_registry_version": "0.1.0",
+  "config_digest": "b755affa0537",
+  "dataset_year": 2024,
+  "density_null_primary": "fixed_node_edge_count",
+  "density_null_sensitivity": "degree_preserving_edge_swap",
+  "edge_estimator": "phase3_gspan",
+  "edge_threshold": 0.12,
+  "frozen_graph_definition": "point phi >= 0.12 and P_boot(phi >= 0.12) >= 0.90",
+  "git_commit": "bd2d7290fc36cfe4a464e2fdb1c58720aec529d2",
+  "git_dirty": false,
+  "gspan": {
+    "algorithm_backend": "gBolt gSpan",
+    "backend": "fast_gspan",
+    "backend_binary_sha256": "84e18b38d007d950554cc23bc7a7cd1526d9ef28d67a398dda36ea4b2b18444d",
+    "backend_version": "0.1.3",
+    "connected": true,
+    "graph_count": 94,
+    "induced": false,
+    "maximum_nodes": 5,
+    "minimum_nodes": 3,
+    "motif_count": 1098,
+    "primary_support_fraction": 0.2,
+    "support_counts": {
+      "0.10": 10,
+      "0.20": 19,
+      "0.30": 29
+    }
+  },
+  "gspan_support": {
+    "0.10": 10,
+    "0.20": 19,
+    "0.30": 29
+  },
+  "minimum_graph_sample_size": 1000,
+  "multiple_testing_rule": "Exploratory paired maxT FWER and BH FDR",
+  "phase": "phase3",
+  "phase26_baseline_config_digest": "172713cfdaf6",
+  "phase26_baseline_manifest_sha256": "b36bc855c3826b7f63dabd725dea5d72eae76ceacf5fce08f48cb22b3048606d",
+  "phase26_retention_decision": "HOLD",
+  "phase_boundary": "Stopped after exploratory Phase 3 motif analysis",
+  "phi_bootstrap_cache_key": "661a4c23350c2e5a",
+  "population_definition": "47 eligible jurisdictions \u00d7 paired education SES",
+  "r_runtime": {
+    "data_table": "1.18.4",
+    "r": "R version 4.4.3 (2025-02-28)",
+    "rscript": "/home/ubuntu/locdev/PHS-abstract/.conda/r-survey/bin/Rscript",
+    "survey": "4.5"
+  },
+  "random_seed": 20240902,
+  "raw_threshold_sensitivity_estimand": "All eligible edges crossing phi 0.12 in each aligned survey bootstrap replicate",
+  "replication_status": "2023_not_run",
+  "ses_permutation_scheme": "within_state_lower_higher_label_swap",
+  "ses_statistics_role": "exploratory_only",
+  "software_version": "0.4.0",
+  "source_data_sha256": "7d53cf088f858e02bcc029a51cf0408cc68f40a0ebeb02a3c0f73058aab36b1c",
+  "source_tree_sha256": "db1b9321f41b9fc2b14f4784eafab32e38faa7aa433907e3daa451d4881f7238",
+  "structural_feasibility_decision": "GO",
+  "timestamp_utc": "2026-09-05T22:15:19.316812+00:00"
+}
