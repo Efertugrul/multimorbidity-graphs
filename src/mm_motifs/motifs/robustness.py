@@ -7,10 +7,13 @@ import numpy as np
 import pandas as pd
 
 from mm_motifs.motifs.mining import (
+    annotate_opportunity_support,
     graphs_from_edge_masks,
     mine_frequent_motifs,
     motif_edge_masks,
     occurrence_matrix,
+    paired_graph_indices,
+    paired_motif_evaluability,
 )
 from mm_motifs.statistics.multiple_testing import benjamini_hochberg
 
@@ -35,6 +38,8 @@ def bootstrap_graph_masks(
             f"Bootstrap masks require columns {sorted(required)}"
         )
     for row in bootstrap.itertuples(index=False):
+        if pd.isna(row.pair_eligible):
+            raise ValueError("Bootstrap pair eligibility is missing")
         if not bool(row.pair_eligible):
             continue
         graph_id = str(row.graph_id)
@@ -76,7 +81,8 @@ def bootstrap_motif_support(
     replicate_graph_masks: np.ndarray,
     motifs: pd.DataFrame,
     edge_index: dict[tuple[str, str], int],
-    support_counts: dict[float, int],
+    support_fractions: list[float],
+    paired_evaluable: np.ndarray,
     chunk_size: int = 128,
 ) -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray]:
     masks = motif_edge_masks(motifs, edge_index)
@@ -91,6 +97,11 @@ def bootstrap_motif_support(
             )
             == masks[np.newaxis, np.newaxis, start:stop]
         )
+        occurrences &= paired_evaluable[
+            np.newaxis,
+            :,
+            start:stop,
+        ]
         support[:, start:stop] = occurrences.sum(axis=1)
     summary = motifs[
         ["motif_id", "node_count", "edge_count", "support_count"]
@@ -98,6 +109,12 @@ def bootstrap_motif_support(
     summary = summary.rename(
         columns={"support_count": "baseline_support_count"}
     )
+    summary["paired_state_count"] = motifs[
+        "paired_state_count"
+    ].to_numpy()
+    summary["evaluable_graph_count"] = motifs[
+        "evaluable_graph_count"
+    ].to_numpy()
     summary["bootstrap_support_mean"] = support.mean(axis=0)
     summary["bootstrap_support_median"] = np.median(support, axis=0)
     summary["bootstrap_support_025"] = np.quantile(
@@ -110,11 +127,19 @@ def bootstrap_motif_support(
         0.975,
         axis=0,
     )
-    for fraction, count in support_counts.items():
+    for fraction in support_fractions:
         suffix = int(round(fraction * 100))
+        count = motifs[
+            f"support_count_{suffix:02d}pct"
+        ].to_numpy(dtype=int)
+        summary[f"support_count_{suffix:02d}pct"] = count
+        summary[f"support_{suffix:02d}pct"] = motifs[
+            f"support_{suffix:02d}pct"
+        ].to_numpy()
         summary[f"p_boot_support_{suffix:02d}pct"] = (
-            support >= count
+            support >= count[np.newaxis, :]
         ).mean(axis=0)
+    summary["primary_support"] = motifs["primary_support"].to_numpy()
     long = pd.DataFrame(
         {
             "bootstrap_replicate": np.repeat(
@@ -126,6 +151,10 @@ def bootstrap_motif_support(
                 replicate_count,
             ),
             "support_count": support.reshape(-1),
+            "evaluable_graph_count": np.tile(
+                motifs["evaluable_graph_count"].to_numpy(),
+                replicate_count,
+            ),
         }
     )
     return summary, long, support
@@ -134,12 +163,16 @@ def bootstrap_motif_support(
 def frozen_vocabulary_stability(
     motifs: pd.DataFrame,
     bootstrap_support: np.ndarray,
-    support_counts: dict[float, int],
+    support_fractions: list[float],
 ) -> pd.DataFrame:
     rows = []
-    for fraction, count in sorted(support_counts.items()):
-        baseline = motifs["support_count"].ge(count).to_numpy()
-        replicate_selected = bootstrap_support >= count
+    for fraction in sorted(support_fractions):
+        suffix = int(round(fraction * 100))
+        baseline = motifs[f"support_{suffix:02d}pct"].to_numpy(dtype=bool)
+        count = motifs[
+            f"support_count_{suffix:02d}pct"
+        ].to_numpy(dtype=int)
+        replicate_selected = bootstrap_support >= count[np.newaxis, :]
         baseline_count = int(baseline.sum())
         intersection = replicate_selected[:, baseline].sum(axis=1)
         replicate_count = replicate_selected.sum(axis=1)
@@ -155,7 +188,8 @@ def frozen_vocabulary_stability(
             rows.append(
                 {
                     "support_fraction": fraction,
-                    "support_count": count,
+                    "minimum_support_count": int(count[baseline].min()),
+                    "maximum_support_count": int(count[baseline].max()),
                     "bootstrap_replicate": replicate_index + 1,
                     "baseline_motif_count": baseline_count,
                     "replicate_baseline_vocabulary_count": int(
@@ -180,9 +214,14 @@ def bootstrap_discovery_set_stability(
     graph_ids: list[str],
     condition_labels: pd.DataFrame,
     universe: list[tuple[str, str]],
+    edge_index: dict[tuple[str, str], int],
+    opportunity_masks: np.ndarray,
+    registry: pd.DataFrame,
     baseline_motifs: pd.DataFrame,
     support_fractions: list[float],
     primary_support_fraction: float,
+    minimum_paired_states: int,
+    candidate_minimum_support: int,
     minimum_nodes: int,
     maximum_nodes: int,
     threads: int,
@@ -196,6 +235,7 @@ def bootstrap_discovery_set_stability(
         )
     rows = []
     for replicate_index, masks in enumerate(replicate_graph_masks):
+        masks = np.bitwise_and(masks, opportunity_masks)
         graphs = graphs_from_edge_masks(
             masks,
             graph_ids,
@@ -212,6 +252,18 @@ def bootstrap_discovery_set_stability(
             threads,
             backend_version,
             include_redundancy=False,
+            candidate_minimum_support=candidate_minimum_support,
+        )
+        motifs, _ = annotate_opportunity_support(
+            motifs,
+            masks,
+            opportunity_masks,
+            graph_ids,
+            registry,
+            edge_index,
+            support_fractions,
+            primary_support_fraction,
+            minimum_paired_states,
         )
         for fraction in support_fractions:
             column = f"support_{int(round(fraction * 100)):02d}pct"
@@ -242,7 +294,7 @@ def bootstrap_discovery_set_stability(
 
 def _sample_fixed_edge_masks(
     edge_counts: np.ndarray,
-    possible_edge_count: int,
+    opportunity_masks: np.ndarray,
     replicates: int,
     seed: int,
 ) -> np.ndarray:
@@ -250,8 +302,18 @@ def _sample_fixed_edge_masks(
     masks = np.zeros((replicates, len(edge_counts)), dtype=np.uint64)
     for replicate in range(replicates):
         for graph_index, edge_count in enumerate(edge_counts):
+            possible = np.asarray(
+                [
+                    index
+                    for index in range(64)
+                    if int(opportunity_masks[graph_index]) & (1 << index)
+                ],
+                dtype=int,
+            )
+            if int(edge_count) > len(possible):
+                raise ValueError("Graph has more edges than eligible dyads")
             selected = generator.choice(
-                possible_edge_count,
+                possible,
                 size=int(edge_count),
                 replace=False,
             )
@@ -287,7 +349,8 @@ def _degree_preserving_swap(
     edges: set[tuple[str, str]],
     target_swaps: int,
     generator: np.random.Generator,
-) -> tuple[set[tuple[str, str]], int]:
+    allowed_edges: set[tuple[str, str]] | None = None,
+) -> tuple[set[tuple[str, str]], int, int]:
     current = set(edges)
     accepted = 0
     attempts = 0
@@ -316,12 +379,14 @@ def _degree_preserving_swap(
         }
         if len(proposed) < 2:
             continue
+        if allowed_edges is not None and not proposed.issubset(allowed_edges):
+            continue
         remainder = current - {first, second}
         if proposed & remainder:
             continue
         current = remainder | proposed
         accepted += 1
-    return current, accepted
+    return current, accepted, attempts
 
 
 def degree_preserving_null_masks(
@@ -330,6 +395,7 @@ def degree_preserving_null_masks(
     replicates: int,
     swaps_per_edge: int,
     seed: int,
+    opportunity_masks: np.ndarray | None = None,
 ) -> tuple[np.ndarray, pd.DataFrame]:
     edge_index = {edge: index for index, edge in enumerate(universe)}
     generator = np.random.default_rng(seed)
@@ -339,25 +405,44 @@ def degree_preserving_null_masks(
     )
     diagnostics = []
     baseline_edges = [_mask_edges(mask, universe) for mask in graph_masks]
+    allowed_by_graph = (
+        [set(universe)] * len(graph_masks)
+        if opportunity_masks is None
+        else [
+            _mask_edges(mask, universe)
+            for mask in opportunity_masks
+        ]
+    )
     for replicate in range(replicates):
-        for graph_index, edges in enumerate(baseline_edges):
+        for graph_index, (edges, allowed_edges) in enumerate(
+            zip(baseline_edges, allowed_by_graph, strict=True)
+        ):
+            if not edges.issubset(allowed_edges):
+                raise ValueError("Observed graph contains an ineligible dyad")
             target = swaps_per_edge * len(edges)
-            randomized, accepted = _degree_preserving_swap(
+            randomized, accepted, attempts = _degree_preserving_swap(
                 edges,
                 target,
                 generator,
+                allowed_edges,
             )
             result[replicate, graph_index] = _edges_mask(
                 randomized,
                 edge_index,
             )
+            randomized_mask = result[replicate, graph_index]
             diagnostics.append(
                 {
                     "null_replicate": replicate + 1,
                     "graph_index": graph_index,
                     "target_swaps": target,
                     "accepted_swaps": accepted,
+                    "attempted_swaps": attempts,
+                    "acceptance_rate": (
+                        accepted / attempts if attempts else np.nan
+                    ),
                     "changed": randomized != edges,
+                    "randomized_edge_mask": f"{int(randomized_mask):012x}",
                 }
             )
     return result, pd.DataFrame(diagnostics)
@@ -369,6 +454,7 @@ def _null_support_summary(
     observed_occurrences: np.ndarray,
     motifs: pd.DataFrame,
     edge_index: dict[tuple[str, str], int],
+    paired_evaluable: np.ndarray,
     chunk_size: int = 128,
 ) -> tuple[pd.DataFrame, np.ndarray]:
     masks = motif_edge_masks(motifs, edge_index)
@@ -385,8 +471,13 @@ def _null_support_summary(
             )
             == masks[np.newaxis, np.newaxis, start:stop]
         )
+        values &= paired_evaluable[
+            np.newaxis,
+            :,
+            start:stop,
+        ]
         support[:, start:stop] = values.sum(axis=1)
-    observed = observed_occurrences.sum(axis=0)
+    observed = (observed_occurrences & paired_evaluable).sum(axis=0)
     mean = support.mean(axis=0)
     standard_deviation = support.std(axis=0, ddof=1)
     z_score = np.divide(
@@ -402,6 +493,7 @@ def _null_support_summary(
         {
             "motif_id": motifs["motif_id"],
             "null_model": name,
+            "evaluable_graph_count": motifs["evaluable_graph_count"],
             "observed_support_count": observed,
             "null_support_mean": mean,
             "null_support_standard_deviation": standard_deviation,
@@ -416,6 +508,8 @@ def _null_support_summary(
 
 def density_null_support(
     graph_masks: np.ndarray,
+    opportunity_masks: np.ndarray,
+    paired_evaluable: np.ndarray,
     motifs: pd.DataFrame,
     edge_index: dict[tuple[str, str], int],
     fixed_edge_replicates: int,
@@ -431,16 +525,17 @@ def density_null_support(
     )
     fixed_masks = _sample_fixed_edge_masks(
         edge_counts,
-        len(edge_index),
+        opportunity_masks,
         fixed_edge_replicates,
         seed,
     )
     fixed_summary, _ = _null_support_summary(
-        "fixed_node_edge_count",
+        "fixed_eligible_dyad_edge_count",
         fixed_masks,
         observed,
         motifs,
         edge_index,
+        paired_evaluable,
     )
     universe = [
         edge
@@ -452,13 +547,15 @@ def density_null_support(
         degree_replicates,
         swaps_per_edge,
         seed + 1,
+        opportunity_masks,
     )
     degree_summary, _ = _null_support_summary(
-        "degree_preserving_edge_swap",
+        "degree_preserving_eligible_dyad_edge_swap",
         degree_masks,
         observed,
         motifs,
         edge_index,
+        paired_evaluable,
     )
     return (
         pd.concat([fixed_summary, degree_summary], ignore_index=True),
@@ -471,8 +568,10 @@ def fixed_edge_occurrence_probability(
     graph_edges: int,
     motif_edges: int,
 ) -> float:
-    if graph_edges < motif_edges:
+    if motif_edges > possible_edges or graph_edges < motif_edges:
         return 0.0
+    if graph_edges > possible_edges:
+        raise ValueError("Graph edge count exceeds eligible dyad count")
     return math.comb(
         possible_edges - motif_edges,
         graph_edges - motif_edges,
@@ -481,6 +580,8 @@ def fixed_edge_occurrence_probability(
 
 def density_residuals(
     graph_masks: np.ndarray,
+    opportunity_masks: np.ndarray,
+    paired_evaluable: np.ndarray,
     motifs: pd.DataFrame,
     edge_index: dict[tuple[str, str], int],
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -490,29 +591,54 @@ def density_residuals(
         [int(int(mask).bit_count()) for mask in graph_masks],
         dtype=int,
     )
+    possible_edge_counts = np.asarray(
+        [int(int(mask).bit_count()) for mask in opportunity_masks],
+        dtype=int,
+    )
     motif_edge_counts = motifs["edge_count"].to_numpy(dtype=int)
     expected = np.empty_like(observed)
     for graph_index, graph_edges in enumerate(edge_counts):
         expected[graph_index] = [
             fixed_edge_occurrence_probability(
-                len(edge_index),
+                int(possible_edge_counts[graph_index]),
                 int(graph_edges),
                 int(motif_edges),
             )
             for motif_edges in motif_edge_counts
         ]
+    observed[~paired_evaluable] = np.nan
+    expected[~paired_evaluable] = np.nan
     return observed - expected, observed
 
 
 def _paired_t(values: np.ndarray) -> np.ndarray:
-    count = values.shape[0]
-    means = values.mean(axis=0)
-    sums_of_squares = np.square(values).sum(axis=0)
+    finite = np.isfinite(values)
+    count = finite.sum(axis=0)
+    safe = np.nan_to_num(values, nan=0.0)
+    means = np.divide(
+        safe.sum(axis=0),
+        count,
+        out=np.zeros(values.shape[1], dtype=float),
+        where=count > 0,
+    )
+    sums_of_squares = np.square(safe).sum(axis=0)
     variances = np.maximum(
-        (sums_of_squares - count * np.square(means)) / (count - 1),
+        np.divide(
+            sums_of_squares - count * np.square(means),
+            count - 1,
+            out=np.zeros(values.shape[1], dtype=float),
+            where=count > 1,
+        ),
         0,
     )
-    standard_errors = np.sqrt(variances / count)
+    standard_errors = np.sqrt(
+        np.divide(
+            variances,
+            count,
+            out=np.zeros(values.shape[1], dtype=float),
+            where=count > 0,
+        )
+    )
     result = np.divide(
         means,
         standard_errors,
@@ -529,41 +655,35 @@ def _paired_t(values: np.ndarray) -> np.ndarray:
 def paired_ses_permutation(
     graph_ids: list[str],
     graph_masks: np.ndarray,
+    opportunity_masks: np.ndarray,
     motifs: pd.DataFrame,
     registry: pd.DataFrame,
     edge_index: dict[tuple[str, str], int],
     permutations: int,
     seed: int,
+    minimum_paired_states: int,
     batch_size: int = 250,
 ) -> pd.DataFrame:
+    motif_masks = motif_edge_masks(motifs, edge_index)
+    pair_table = paired_graph_indices(graph_ids, registry)
+    paired_evaluable, state_evaluable = paired_motif_evaluability(
+        opportunity_masks,
+        motif_masks,
+        pair_table,
+    )
     residuals, observed = density_residuals(
         graph_masks,
+        opportunity_masks,
+        paired_evaluable,
         motifs,
         edge_index,
     )
-    graph_lookup = {graph_id: index for index, graph_id in enumerate(graph_ids)}
-    pairs = []
-    eligible_registry = registry[
-        registry["graph_id"].isin(graph_lookup)
-    ]
-    for state_code, eligible in eligible_registry.groupby(
-        "geography_code",
-        sort=True,
-    ):
-        lower = eligible[eligible["ses_category"].eq("lower")]
-        higher = eligible[eligible["ses_category"].eq("higher")]
-        if len(lower) != 1 or len(higher) != 1:
-            raise ValueError(f"State {state_code} lacks one paired SES graph")
-        pairs.append(
-            (
-                int(state_code),
-                graph_lookup[str(lower.iloc[0]["graph_id"])],
-                graph_lookup[str(higher.iloc[0]["graph_id"])],
-            )
-        )
-    lower_indices = np.asarray([value[1] for value in pairs], dtype=int)
-    higher_indices = np.asarray([value[2] for value in pairs], dtype=int)
+    lower_indices = pair_table["lower_index"].to_numpy(dtype=int)
+    higher_indices = pair_table["higher_index"].to_numpy(dtype=int)
     differences = residuals[lower_indices] - residuals[higher_indices]
+    pair_counts = state_evaluable.sum(axis=0)
+    if np.any(pair_counts < minimum_paired_states):
+        raise ValueError("Motif lacks the minimum paired-state opportunity")
     observed_t = _paired_t(differences)
     exceedances = np.zeros(len(motifs), dtype=int)
     maximum_exceedances = np.zeros(len(motifs), dtype=int)
@@ -573,19 +693,22 @@ def paired_ses_permutation(
         size = min(batch_size, permutations - completed)
         signs = generator.choice(
             np.asarray([-1.0, 1.0]),
-            size=(size, len(pairs)),
+            size=(size, len(pair_table)),
         )
-        means = signs @ differences / len(pairs)
-        sums_of_squares = np.square(differences).sum(axis=0)
+        safe_differences = np.nan_to_num(differences, nan=0.0)
+        means = signs @ safe_differences / pair_counts
+        sums_of_squares = np.square(safe_differences).sum(axis=0)
         variances = np.maximum(
             (
                 sums_of_squares[np.newaxis, :]
-                - len(pairs) * np.square(means)
+                - pair_counts[np.newaxis, :] * np.square(means)
             )
-            / (len(pairs) - 1),
+            / (pair_counts[np.newaxis, :] - 1),
             0,
         )
-        standard_errors = np.sqrt(variances / len(pairs))
+        standard_errors = np.sqrt(
+            variances / pair_counts[np.newaxis, :]
+        )
         permuted_t = np.divide(
             means,
             standard_errors,
@@ -606,35 +729,52 @@ def paired_ses_permutation(
         completed += size
     p_value = (exceedances + 1) / (permutations + 1)
     max_t_p_value = (maximum_exceedances + 1) / (permutations + 1)
-    lower_support = observed[lower_indices].sum(axis=0)
-    higher_support = observed[higher_indices].sum(axis=0)
+    lower_support = np.nansum(observed[lower_indices], axis=0)
+    higher_support = np.nansum(observed[higher_indices], axis=0)
     result = pd.DataFrame(
         {
             "motif_id": motifs["motif_id"],
-            "state_pair_count": len(pairs),
+            "state_pair_count": pair_counts,
             "lower_support_count": lower_support,
             "higher_support_count": higher_support,
             "raw_support_fraction_difference": (
                 lower_support - higher_support
             )
-            / len(pairs),
-            "density_residual_mean_lower": residuals[
-                lower_indices
-            ].mean(axis=0),
-            "density_residual_mean_higher": residuals[
-                higher_indices
-            ].mean(axis=0),
-            "paired_density_residual_difference": differences.mean(axis=0),
+            / pair_counts,
+            "density_residual_mean_lower": np.nanmean(
+                residuals[lower_indices],
+                axis=0,
+            ),
+            "density_residual_mean_higher": np.nanmean(
+                residuals[higher_indices],
+                axis=0,
+            ),
+            "paired_density_residual_difference": np.nanmean(
+                differences,
+                axis=0,
+            ),
             "paired_density_residual_t": observed_t,
             "permutation_p_value": p_value,
             "permutation_max_t_p_value": max_t_p_value,
             "permutation_count": permutations,
             "permutation_scheme": "within_state_lower_higher_label_swap",
-            "density_adjustment": "fixed_node_edge_count_expected_occurrence",
+            "density_adjustment": (
+                "fixed_eligible_dyad_edge_count_expected_occurrence"
+            ),
         }
     )
     result["permutation_bh_q_value"] = benjamini_hochberg(
         result["permutation_p_value"]
+    )
+    result["permutation_p_value_mcse"] = np.sqrt(
+        result["permutation_p_value"]
+        * (1 - result["permutation_p_value"])
+        / (permutations + 1)
+    )
+    result["permutation_max_t_p_value_mcse"] = np.sqrt(
+        result["permutation_max_t_p_value"]
+        * (1 - result["permutation_max_t_p_value"])
+        / (permutations + 1)
     )
     return result
 
@@ -645,6 +785,7 @@ def motif_shape_summary(motifs: pd.DataFrame) -> pd.DataFrame:
         column
         for column in motifs
         if column.startswith("support_") and column.endswith("pct")
+        and not column.startswith("support_count_")
     )
     for support_column in support_columns:
         scoped = motifs[motifs[support_column]]

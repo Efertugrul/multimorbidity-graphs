@@ -149,25 +149,34 @@ criterion remains recorded as **HOLD**, while structural feasibility is
 recorded separately as **GO**.
 
 The gBolt gSpan backend mines connected, undirected, non-induced motifs of
-3–5 nodes at pooled support levels of 10%, 20%, and 30% (10, 19, and 29 of
-94 graphs). Node labels are canonical diseases and every edge has one
-association label.
+3–5 nodes at pooled support levels of 10%, 20%, and 30%. Support uses only
+states where every required dyad is eligible in both SES graphs, with at
+least 40 paired states required. Node labels are canonical diseases and every
+edge has one association label. A motif records recurring pairwise
+association structure; it is not evidence that respondents jointly have all
+motif diseases.
 
-Phase 3 retains replicate-specific phi-threshold edge masks. In the primary
-robustness analysis, frozen stable edges may drop when their replicate phi
-falls below `.12`, but unselected edges cannot enter. gSpan is rerun on all
-500 aligned survey-bootstrap graph realizations. A separate raw-threshold
-sensitivity analysis allows every eligible edge crossing `.12` to enter.
-Neither analysis performs a computationally prohibitive nested re-estimation
-of the 0.90 stability filter.
+Phase 3 generates an independent 500-replicate evaluation bank, separate from
+the Phase 2.6 bank that selected frozen edges. In the primary robustness
+analysis, frozen stable edges may drop when their replicate phi falls below
+`.12`, but unselected edges cannot enter. This estimates conditional
+edge-retention robustness, not full stable-pipeline selection stability.
+gSpan is rerun on all aligned realizations. A separate raw-threshold
+sensitivity allows every eligible edge crossing `.12` to enter. Neither
+analysis performs a nested outer/inner re-estimation of the 0.90 filter.
 
-Density diagnostics use fixed-node/fixed-edge-count null graphs with
-degree-preserving edge swaps as a sensitivity analysis.
+Density diagnostics condition on each graph's eligible dyad set and edge
+count, with degree-preserving edge swaps constrained to eligible dyads as a
+sensitivity analysis.
 
 SES comparisons are exploratory, use density-residualized motif occurrence,
-and swap lower/higher labels only within paired jurisdictions. MaxT and BH
-adjustments are reported. Motif discovery never uses SES labels, and frozen
-motifs still require 2023 replication.
+and swap lower/higher labels only within motif-evaluable paired
+jurisdictions. They estimate an education-stratum structural contrast under
+within-state exchangeability, not a causal SES effect. MaxT and BH adjustments
+are reported. Density conditioning does not remove SES differences in
+edge-detection precision caused by sample size or disease prevalence. Motif
+discovery never uses SES direction or p-values, and frozen motifs still
+require 2023 replication.
 
 ## Configuration
 

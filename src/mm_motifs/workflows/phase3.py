@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import shutil
 from pathlib import Path
@@ -17,13 +18,16 @@ from mm_motifs.data.harmonize import (
 )
 from mm_motifs.data.load import read_selected
 from mm_motifs.motifs.mining import (
+    annotate_opportunity_support,
+    annotate_redundancy,
     edge_universe,
     graph_database_from_edges,
     graph_edge_masks,
+    graph_opportunity_masks,
     mine_frequent_motifs,
     motif_edge_masks,
     occurrence_matrix,
-    support_counts,
+    paired_graph_indices,
     write_gspan_database,
 )
 from mm_motifs.motifs.robustness import (
@@ -182,19 +186,23 @@ def _resolve_harmonized_csv(
 
 def _summarize_stability(
     stability: pd.DataFrame,
-    support_count_map: dict[float, int],
+    support_fractions: list[float],
     probability_cutpoints: list[float],
 ) -> pd.DataFrame:
     rows = []
-    for fraction, count in sorted(support_count_map.items()):
+    for fraction in sorted(support_fractions):
+        suffix = int(round(fraction * 100))
         column = f"p_boot_support_{int(round(fraction * 100)):02d}pct"
-        frame = stability[
-            stability["baseline_support_count"].ge(count)
-        ]
+        frame = stability[stability[f"support_{suffix:02d}pct"]]
         for node_count, group in frame.groupby("node_count", sort=True):
             row = {
                 "support_fraction": fraction,
-                "support_count": count,
+                "minimum_support_count": int(
+                    group[f"support_count_{suffix:02d}pct"].min()
+                ),
+                "maximum_support_count": int(
+                    group[f"support_count_{suffix:02d}pct"].max()
+                ),
                 "node_count": int(node_count),
                 "baseline_motif_count": len(group),
                 "median_bootstrap_support_probability": float(
@@ -256,29 +264,52 @@ def _feasibility_report(
     discovery_summary: pd.DataFrame,
     threshold_sensitivity_summary: pd.DataFrame,
     density_null: pd.DataFrame,
+    degree_diagnostics: pd.DataFrame,
     ses_results: pd.DataFrame,
-    support_count_map: dict[float, int],
+    support_fractions: list[float],
     primary_support_fraction: float,
+    minimum_paired_states: int,
 ) -> dict[str, Any]:
-    primary_count = support_count_map[primary_support_fraction]
     primary_probability = (
         f"p_boot_support_{int(round(primary_support_fraction * 100)):02d}pct"
     )
-    primary_stability = stability[
-        stability["baseline_support_count"].ge(primary_count)
-    ]
+    primary_stability = stability[stability["primary_support"]]
     fixed_null = density_null[
-        density_null["null_model"].eq("fixed_node_edge_count")
+        density_null["null_model"].eq("fixed_eligible_dyad_edge_count")
     ]
     degree_null = density_null[
-        density_null["null_model"].eq("degree_preserving_edge_swap")
+        density_null["null_model"].eq(
+            "degree_preserving_eligible_dyad_edge_swap"
+        )
     ]
+    degree_groups = degree_diagnostics.groupby("graph_index", sort=False)
+    unique_realizations = degree_groups["randomized_edge_mask"].nunique()
+    changed_fraction = degree_groups["changed"].mean()
+    swap_completion = np.divide(
+        degree_diagnostics["accepted_swaps"],
+        degree_diagnostics["target_swaps"],
+        out=np.ones(len(degree_diagnostics), dtype=float),
+        where=degree_diagnostics["target_swaps"].gt(0),
+    )
     support_spectrum = {
         f"{fraction:.0%}": {
-            "minimum_graphs": count,
-            "motif_count": int(motifs["support_count"].ge(count).sum()),
+            "motif_count": int(
+                motifs[
+                    f"support_{int(round(fraction * 100)):02d}pct"
+                ].sum()
+            ),
+            "minimum_support_count": int(
+                motifs[
+                    f"support_count_{int(round(fraction * 100)):02d}pct"
+                ].min()
+            ),
+            "maximum_support_count": int(
+                motifs[
+                    f"support_count_{int(round(fraction * 100)):02d}pct"
+                ].max()
+            ),
         }
-        for fraction, count in support_count_map.items()
+        for fraction in support_fractions
     }
     return {
         "phase26_retention_decision": "HOLD",
@@ -301,6 +332,14 @@ def _feasibility_report(
             graph_index["triangle_count"].gt(0).sum()
         ),
         "support_spectrum": support_spectrum,
+        "minimum_paired_states": minimum_paired_states,
+        "paired_state_count_range": [
+            int(motifs["paired_state_count"].min()),
+            int(motifs["paired_state_count"].max()),
+        ],
+        "ineligible_graph_dyad_cells": int(
+            graph_index["ineligible_dyad_count"].sum()
+        ),
         "motif_count_total": len(motifs),
         "closed_motif_count": int(motifs["is_closed"].sum()),
         "maximal_motif_count": int(motifs["is_maximal"].sum()),
@@ -336,6 +375,18 @@ def _feasibility_report(
         "degree_null_positive_z_fraction": float(
             degree_null["density_null_z"].gt(0).mean()
         ),
+        "degree_null_minimum_unique_realizations": int(
+            unique_realizations.min()
+        ),
+        "degree_null_minimum_changed_fraction": float(
+            changed_fraction.min()
+        ),
+        "degree_null_minimum_swap_completion": float(
+            swap_completion.min()
+        ),
+        "degree_null_median_proposal_acceptance": float(
+            degree_diagnostics["acceptance_rate"].median()
+        ),
         "exploratory_ses_motif_count": len(ses_results),
         "exploratory_ses_max_t_p_below_005": int(
             ses_results["permutation_max_t_p_value"].lt(0.05).sum()
@@ -346,12 +397,19 @@ def _feasibility_report(
         "interpretation": (
             "Motif discovery, robustness, density nulls, and SES comparisons "
             "are exploratory. Density-null p-values are selection-conditional; "
-            "2023 replication remains required."
+            "SES contrasts require within-state exchangeability and are not "
+            "causal. Density conditioning does not remove edge-detection "
+            "precision differences; 2023 replication remains required."
         ),
         "bootstrap_boundary": (
-            "Primary realizations only allow frozen stable edges to drop at "
-            "the phi 0.12 threshold. All eligible threshold-crossing edges "
-            "are evaluated separately; the 0.90 filter is not nested."
+            "An independent evaluation bank allows only frozen stable edges "
+            "to drop at phi 0.12. This is conditional edge-retention "
+            "robustness, not full outer-inner stable-pipeline rediscovery. "
+            "All eligible threshold-crossing edges are evaluated separately."
+        ),
+        "motif_interpretation": (
+            "Motifs are recurring patterns of pairwise disease associations, "
+            "not respondent-level higher-order disease combinations."
         ),
     }
 
@@ -412,12 +470,36 @@ def run_phase3(
         how="left",
         validate="one_to_one",
     )
-    write_csv(graph_index, output / "graph_database_index.csv")
     logger.info("Loaded %s frozen stable graphs", len(graphs))
 
     fractions = [float(value) for value in mining["support_fractions"]]
     primary_fraction = float(mining["primary_support_fraction"])
-    support_count_map = support_counts(len(graphs), fractions)
+    minimum_paired_states = int(mining["minimum_paired_states"])
+    candidate_minimum_support = math.ceil(
+        min(fractions) * 2 * minimum_paired_states
+    )
+    conditions = condition_labels["condition"].tolist()
+    universe = edge_universe(conditions)
+    edge_index = {edge: index for index, edge in enumerate(universe)}
+    baseline_graph_masks = graph_edge_masks(graphs, edge_index)
+    opportunity_masks = graph_opportunity_masks(
+        edge_table,
+        str(settings["phase26_baseline"]["stable_rule_id"]),
+        graph_ids,
+        edge_index,
+    )
+    if np.any(
+        np.bitwise_and(baseline_graph_masks, opportunity_masks)
+        != baseline_graph_masks
+    ):
+        raise RuntimeError("Frozen graph contains an ineligible dyad")
+    graph_index["eligible_dyad_count"] = [
+        int(int(mask).bit_count()) for mask in opportunity_masks
+    ]
+    graph_index["ineligible_dyad_count"] = (
+        len(universe) - graph_index["eligible_dyad_count"]
+    )
+    write_csv(graph_index, output / "graph_database_index.csv")
     motifs, gspan_metadata = mine_frequent_motifs(
         graphs,
         condition_labels,
@@ -427,15 +509,66 @@ def run_phase3(
         int(mining["maximum_nodes"]),
         int(mining["threads"]),
         str(mining["backend_version"]),
+        include_redundancy=False,
+        candidate_minimum_support=candidate_minimum_support,
     )
-    conditions = condition_labels["condition"].tolist()
-    universe = edge_universe(conditions)
-    edge_index = {edge: index for index, edge in enumerate(universe)}
-    baseline_graph_masks = graph_edge_masks(graphs, edge_index)
+    candidate_motifs = motifs
+    candidate_motif_count = len(candidate_motifs)
+    motifs, paired_evaluable = annotate_opportunity_support(
+        candidate_motifs,
+        baseline_graph_masks,
+        opportunity_masks,
+        graph_ids,
+        registry,
+        edge_index,
+        fractions,
+        primary_fraction,
+        minimum_paired_states,
+    )
+    pair_table = paired_graph_indices(graph_ids, registry)
+    permutation = np.arange(len(graph_ids))
+    lower_indices = pair_table["lower_index"].to_numpy(dtype=int)
+    higher_indices = pair_table["higher_index"].to_numpy(dtype=int)
+    permutation[lower_indices] = higher_indices
+    permutation[higher_indices] = lower_indices
+    swapped_motifs, _ = annotate_opportunity_support(
+        candidate_motifs,
+        baseline_graph_masks[permutation],
+        opportunity_masks[permutation],
+        graph_ids,
+        registry,
+        edge_index,
+        fractions,
+        primary_fraction,
+        minimum_paired_states,
+    )
+    invariant_columns = [
+        "motif_id",
+        "paired_state_count",
+        "support_count",
+        *[
+            f"support_{int(round(fraction * 100)):02d}pct"
+            for fraction in fractions
+        ],
+    ]
+    if not motifs[invariant_columns].equals(
+        swapped_motifs[invariant_columns]
+    ):
+        raise RuntimeError("Pooled motif family is not SES-swap invariant")
+    motifs = annotate_redundancy(motifs)
+    gspan_metadata["candidate_backend_support_counts"] = (
+        gspan_metadata.pop("support_counts")
+    )
+    gspan_metadata["candidate_motif_count"] = candidate_motif_count
+    gspan_metadata["motif_count"] = len(motifs)
+    gspan_metadata["minimum_paired_states"] = minimum_paired_states
+    gspan_metadata["support_semantics"] = (
+        "motif_specific_pair_complete_state_opportunity"
+    )
     baseline_occurrence = occurrence_matrix(
         baseline_graph_masks,
         motif_edge_masks(motifs, edge_index),
-    )
+    ) & paired_evaluable
     if not np.array_equal(
         baseline_occurrence.sum(axis=0),
         motifs["support_count"].to_numpy(),
@@ -497,6 +630,10 @@ def run_phase3(
         edge_index,
         int(bootstrap_settings["replicates"]),
     )
+    threshold_replicate_masks = np.bitwise_and(
+        threshold_replicate_masks,
+        opportunity_masks[np.newaxis, :],
+    )
     stable_replicate_masks = restrict_to_frozen_edges(
         threshold_replicate_masks,
         baseline_graph_masks,
@@ -505,11 +642,12 @@ def run_phase3(
         stable_replicate_masks,
         motifs,
         edge_index,
-        support_count_map,
+        fractions,
+        paired_evaluable,
     )
     stability_summary = _summarize_stability(
         stability,
-        support_count_map,
+        fractions,
         [
             float(value)
             for value in bootstrap_settings[
@@ -529,7 +667,7 @@ def run_phase3(
     vocabulary_stability = frozen_vocabulary_stability(
         motifs,
         bootstrap_support,
-        support_count_map,
+        fractions,
     )
     write_csv(
         vocabulary_stability,
@@ -546,9 +684,14 @@ def run_phase3(
             graph_ids,
             condition_labels,
             universe,
+            edge_index,
+            opportunity_masks,
+            registry,
             motifs,
             fractions,
             primary_fraction,
+            minimum_paired_states,
+            candidate_minimum_support,
             int(mining["minimum_nodes"]),
             int(mining["maximum_nodes"]),
             int(mining["threads"]),
@@ -584,9 +727,14 @@ def run_phase3(
             graph_ids,
             condition_labels,
             universe,
+            edge_index,
+            opportunity_masks,
+            registry,
             motifs,
             fractions,
             primary_fraction,
+            minimum_paired_states,
+            candidate_minimum_support,
             int(mining["minimum_nodes"]),
             int(mining["maximum_nodes"]),
             int(mining["threads"]),
@@ -609,6 +757,8 @@ def run_phase3(
 
     density_null, degree_diagnostics = density_null_support(
         baseline_graph_masks,
+        opportunity_masks,
+        paired_evaluable,
         motifs,
         edge_index,
         int(density_settings["fixed_edge_replicates"]),
@@ -629,11 +779,13 @@ def run_phase3(
     ses_results = paired_ses_permutation(
         graph_ids,
         baseline_graph_masks,
+        opportunity_masks,
         primary_motifs,
         registry,
         edge_index,
         int(ses_settings["permutations"]),
         int(ses_settings["seed"]),
+        minimum_paired_states,
     )
     ses_results = ses_results.merge(
         primary_motifs[
@@ -652,10 +804,12 @@ def run_phase3(
     logger.info("Completed paired density-adjusted SES permutations")
 
     fixed_null = density_null[
-        density_null["null_model"].eq("fixed_node_edge_count")
+        density_null["null_model"].eq("fixed_eligible_dyad_edge_count")
     ].drop(columns="null_model")
     degree_null = density_null[
-        density_null["null_model"].eq("degree_preserving_edge_swap")
+        density_null["null_model"].eq(
+            "degree_preserving_eligible_dyad_edge_swap"
+        )
     ].drop(columns="null_model")
     enriched = motifs.merge(
         stability,
@@ -695,9 +849,6 @@ def run_phase3(
         output / "figures" / "motif_support_spectrum.png",
         dpi,
     )
-    stability.attrs["primary_support_count"] = support_count_map[
-        primary_fraction
-    ]
     draw_motif_bootstrap_stability(
         stability,
         output / "figures" / "motif_bootstrap_stability.png",
@@ -741,9 +892,11 @@ def run_phase3(
         discovery_summary,
         threshold_sensitivity_summary,
         density_null,
+        degree_diagnostics,
         ses_results,
-        support_count_map,
+        fractions,
         primary_fraction,
+        minimum_paired_states,
     )
     write_json(_json_safe(report), output / "phase3_report.json")
     source = raw_xpt_path(config)
@@ -778,15 +931,45 @@ def run_phase3(
                     ),
                     "gspan": gspan_metadata,
                     "gspan_support": {
-                        f"{fraction:.2f}": count
-                        for fraction, count in support_count_map.items()
+                        f"{fraction:.2f}": {
+                            "denominator": (
+                                "motif-specific paired-complete state graphs"
+                            ),
+                            "minimum_count": int(
+                                motifs[
+                                    "support_count_"
+                                    f"{int(round(fraction * 100)):02d}pct"
+                                ].min()
+                            ),
+                            "maximum_count": int(
+                                motifs[
+                                    "support_count_"
+                                    f"{int(round(fraction * 100)):02d}pct"
+                                ].max()
+                            ),
+                        }
+                        for fraction in fractions
                     },
                     "bootstrap_replicates": int(
                         bootstrap_settings["replicates"]
                     ),
+                    "bootstrap_bank_role": str(
+                        bootstrap_settings["bank_role"]
+                    ),
+                    "bootstrap_selection_bank_seed": int(
+                        bootstrap_settings["selection_bank_seed"]
+                    ),
+                    "bootstrap_evaluation_bank_seed": int(
+                        bootstrap_settings["seed"]
+                    ),
+                    "bootstrap_probability_cutpoints_role": str(
+                        bootstrap_settings["reporting_cutpoints_role"]
+                    ),
                     "bootstrap_graph_estimand": (
-                        "Frozen stable edges retained when their aligned "
-                        "survey bootstrap phi remains at least 0.12"
+                        "Conditional retention of frozen stable edges when "
+                        "their independent evaluation-bank survey bootstrap "
+                        "phi remains at least 0.12; not full-pipeline "
+                        "stable-graph rediscovery"
                     ),
                     "raw_threshold_sensitivity_estimand": (
                         "All eligible edges crossing phi 0.12 in each "
@@ -796,16 +979,31 @@ def run_phase3(
                         "Lower/higher domains share state replicate weights; "
                         "equal replicate indices combine independent states"
                     ),
+                    "motif_opportunity_definition": (
+                        "Required dyads eligible in both SES graphs; support "
+                        "uses motif-specific paired-complete states"
+                    ),
+                    "minimum_paired_states": minimum_paired_states,
+                    "ineligible_graph_dyad_cells": int(
+                        graph_index["ineligible_dyad_count"].sum()
+                    ),
                     "phi_bootstrap_cache_key": bootstrap_cache_key,
                     "r_runtime": r_versions,
-                    "density_null_primary": "fixed_node_edge_count",
+                    "density_null_primary": (
+                        "fixed_eligible_dyad_edge_count"
+                    ),
                     "density_null_sensitivity": (
-                        "degree_preserving_edge_swap"
+                        "degree_preserving_eligible_dyad_edge_swap"
                     ),
                     "ses_permutation_scheme": (
                         "within_state_lower_higher_label_swap"
                     ),
                     "ses_statistics_role": "exploratory_only",
+                    "ses_estimand": (
+                        "equal-state lower-minus-higher structural contrast "
+                        "among motif-evaluable state pairs"
+                    ),
+                    "causal_interpretation": False,
                     "replication_status": "2023_not_run",
                     "phase_boundary": (
                         "Stopped after exploratory Phase 3 motif analysis"

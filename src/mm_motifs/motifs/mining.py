@@ -196,6 +196,7 @@ def mine_frequent_motifs(
     threads: int,
     expected_backend_version: str,
     include_redundancy: bool = True,
+    candidate_minimum_support: int | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     from fast_gspan import FastgSpan
 
@@ -207,7 +208,13 @@ def mine_frequent_motifs(
         )
     graph_ids = [str(graph.graph["graph_id"]) for graph in graphs]
     counts = support_counts(len(graphs), support_fractions)
-    minimum_support = min(counts.values())
+    minimum_support = (
+        min(counts.values())
+        if candidate_minimum_support is None
+        else int(candidate_minimum_support)
+    )
+    if minimum_support < 1 or minimum_support > min(counts.values()):
+        raise ValueError("Invalid gSpan candidate support floor")
     miner = FastgSpan(
         min_support=minimum_support,
         min_num_vertices=minimum_nodes,
@@ -285,6 +292,7 @@ def mine_frequent_motifs(
             f"{fraction:.2f}": count
             for fraction, count in counts.items()
         },
+        "candidate_minimum_support": minimum_support,
         "primary_support_fraction": primary_support_fraction,
         "motif_count": len(motifs),
     }
@@ -344,6 +352,172 @@ def graph_edge_masks(
             value |= np.uint64(1) << np.uint64(edge_index[edge])
         masks[graph_index] = value
     return masks
+
+
+def graph_opportunity_masks(
+    edge_table: pd.DataFrame,
+    rule_id: str,
+    graph_ids: list[str],
+    edge_index: dict[tuple[str, str], int],
+) -> np.ndarray:
+    scoped = edge_table[edge_table["rule_id"].eq(rule_id)]
+    masks = np.zeros(len(graph_ids), dtype=np.uint64)
+    graph_lookup = {
+        graph_id: graph_index
+        for graph_index, graph_id in enumerate(graph_ids)
+    }
+    seen: set[tuple[str, tuple[str, str]]] = set()
+    for row in scoped.itertuples(index=False):
+        graph_id = str(row.graph_id)
+        if graph_id not in graph_lookup:
+            continue
+        edge = tuple(
+            sorted((str(row.source_condition), str(row.target_condition)))
+        )
+        key = (graph_id, edge)
+        if key in seen:
+            raise ValueError(f"Duplicate graph opportunity row: {key}")
+        seen.add(key)
+        if pd.isna(row.pair_eligible):
+            raise ValueError(f"Missing graph opportunity status: {key}")
+        if bool(row.pair_eligible):
+            masks[graph_lookup[graph_id]] |= (
+                np.uint64(1) << np.uint64(edge_index[edge])
+            )
+    expected = len(graph_ids) * len(edge_index)
+    if len(seen) != expected:
+        raise ValueError(
+            f"Expected {expected} graph-dyad opportunities, found {len(seen)}"
+        )
+    return masks
+
+
+def paired_graph_indices(
+    graph_ids: list[str],
+    registry: pd.DataFrame,
+) -> pd.DataFrame:
+    graph_lookup = {
+        graph_id: graph_index
+        for graph_index, graph_id in enumerate(graph_ids)
+    }
+    scoped = registry[registry["graph_id"].isin(graph_lookup)]
+    rows = []
+    for state_code, frame in scoped.groupby("geography_code", sort=True):
+        lower = frame[frame["ses_category"].eq("lower")]
+        higher = frame[frame["ses_category"].eq("higher")]
+        if len(lower) != 1 or len(higher) != 1:
+            raise ValueError(f"State {state_code} lacks one paired SES graph")
+        rows.append(
+            {
+                "geography_code": int(state_code),
+                "lower_index": graph_lookup[str(lower.iloc[0]["graph_id"])],
+                "higher_index": graph_lookup[
+                    str(higher.iloc[0]["graph_id"])
+                ],
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def paired_motif_evaluability(
+    opportunity_masks: np.ndarray,
+    motif_masks: np.ndarray,
+    pairs: pd.DataFrame,
+) -> tuple[np.ndarray, np.ndarray]:
+    graph_evaluable = (
+        np.bitwise_and(
+            opportunity_masks[:, np.newaxis],
+            motif_masks[np.newaxis, :],
+        )
+        == motif_masks[np.newaxis, :]
+    )
+    lower = pairs["lower_index"].to_numpy(dtype=int)
+    higher = pairs["higher_index"].to_numpy(dtype=int)
+    state_evaluable = graph_evaluable[lower] & graph_evaluable[higher]
+    paired_graph_evaluable = np.zeros_like(graph_evaluable)
+    paired_graph_evaluable[lower] = state_evaluable
+    paired_graph_evaluable[higher] = state_evaluable
+    return paired_graph_evaluable, state_evaluable
+
+
+def annotate_opportunity_support(
+    motifs: pd.DataFrame,
+    graph_masks: np.ndarray,
+    opportunity_masks: np.ndarray,
+    graph_ids: list[str],
+    registry: pd.DataFrame,
+    edge_index: dict[tuple[str, str], int],
+    support_fractions: list[float],
+    primary_support_fraction: float,
+    minimum_paired_states: int,
+) -> tuple[pd.DataFrame, np.ndarray]:
+    result = motifs.copy()
+    result = result.rename(
+        columns={
+            "support_count": "gspan_candidate_support_count",
+            "support_fraction": "gspan_candidate_support_fraction",
+            "graph_ids": "gspan_candidate_graph_ids",
+        }
+    )
+    motif_masks = motif_edge_masks(result, edge_index)
+    pairs = paired_graph_indices(graph_ids, registry)
+    paired_evaluable, state_evaluable = paired_motif_evaluability(
+        opportunity_masks,
+        motif_masks,
+        pairs,
+    )
+    occurrences = occurrence_matrix(graph_masks, motif_masks)
+    valid_occurrences = occurrences & paired_evaluable
+    lower = pairs["lower_index"].to_numpy(dtype=int)
+    higher = pairs["higher_index"].to_numpy(dtype=int)
+    paired_state_count = state_evaluable.sum(axis=0)
+    evaluable_graph_count = 2 * paired_state_count
+    support = valid_occurrences.sum(axis=0)
+    state_support = (
+        (occurrences[lower] | occurrences[higher]) & state_evaluable
+    ).sum(axis=0)
+    result["paired_state_count"] = paired_state_count
+    result["evaluable_graph_count"] = evaluable_graph_count
+    result["support_count"] = support
+    result["support_fraction"] = np.divide(
+        support,
+        evaluable_graph_count,
+        out=np.zeros(len(result), dtype=float),
+        where=evaluable_graph_count > 0,
+    )
+    result["distinct_state_support_count"] = state_support
+    result["graph_ids"] = [
+        json.dumps(
+            [
+                graph_ids[index]
+                for index in np.flatnonzero(valid_occurrences[:, motif_index])
+            ],
+            separators=(",", ":"),
+        )
+        for motif_index in range(len(result))
+    ]
+    for fraction in support_fractions:
+        suffix = int(round(float(fraction) * 100))
+        thresholds = np.ceil(
+            float(fraction) * evaluable_graph_count
+        ).astype(int)
+        result[f"support_count_{suffix:02d}pct"] = thresholds
+        result[f"support_{suffix:02d}pct"] = support >= thresholds
+    primary_column = (
+        f"support_{int(round(primary_support_fraction * 100)):02d}pct"
+    )
+    result["primary_support"] = result[primary_column]
+    minimum_column = (
+        f"support_{int(round(min(support_fractions) * 100)):02d}pct"
+    )
+    keep = (
+        result["paired_state_count"].ge(minimum_paired_states)
+        & result[minimum_column]
+    )
+    result = result.loc[keep].reset_index(drop=True)
+    if result.empty:
+        raise RuntimeError("No motifs satisfy opportunity-aware support")
+    return result, paired_evaluable[:, keep.to_numpy()]
 
 
 def motif_edge_masks(

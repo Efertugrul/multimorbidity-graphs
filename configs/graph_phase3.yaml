@@ -31,6 +31,7 @@ phase3:
     primary_support_fraction: 0.20
     minimum_nodes: 3
     maximum_nodes: 5
+    minimum_paired_states: 40
     connected: true
     induced: false
     undirected: true
@@ -39,10 +40,13 @@ phase3:
   bootstrap:
     replicates: 500
     threshold: 0.12
-    seed: 20240902
+    bank_role: independent_evaluation
+    selection_bank_seed: 20240902
+    seed: 20240905
     discovery_reruns: true
     raw_threshold_sensitivity_reruns: true
     reporting_probability_cutpoints: [0.50, 0.80, 0.90]
+    reporting_cutpoints_role: descriptive_only
   density_null:
     fixed_edge_replicates: 1000
     degree_preserving_replicates: 200

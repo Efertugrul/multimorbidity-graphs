@@ -151,6 +151,8 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
             or int(mining["maximum_nodes"]) != 5
         ):
             raise ValueError("Phase 3 motifs must contain 3–5 nodes")
+        if int(mining["minimum_paired_states"]) != 40:
+            raise ValueError("Phase 3 requires at least 40 paired states")
         if (
             mining["backend"] != "fast_gspan"
             or str(mining["backend_version"]) != "0.1.3"
@@ -165,8 +167,14 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
             or float(bootstrap["threshold"]) != 0.12
             or bootstrap["discovery_reruns"] is not True
             or bootstrap["raw_threshold_sensitivity_reruns"] is not True
+            or bootstrap["bank_role"] != "independent_evaluation"
+            or bootstrap["reporting_cutpoints_role"] != "descriptive_only"
+            or int(bootstrap["seed"])
+            == int(bootstrap["selection_bank_seed"])
         ):
-            raise ValueError("Phase 3 requires 500 phi 0.12 realizations")
+            raise ValueError(
+                "Phase 3 requires an independent 500-replicate evaluation bank"
+            )
         density_null = phase3["density_null"]
         if (
             int(density_null["fixed_edge_replicates"]) < 2

@@ -8,10 +8,12 @@ import pandas as pd
 
 from mm_motifs.config import load_config
 from mm_motifs.motifs.mining import (
+    annotate_opportunity_support,
     annotate_redundancy,
     edge_universe,
     graph_database_from_edges,
     graph_edge_masks,
+    graph_opportunity_masks,
     mine_frequent_motifs,
     motif_edge_masks,
     occurrence_matrix,
@@ -22,6 +24,7 @@ from mm_motifs.motifs.robustness import (
     bootstrap_motif_support,
     degree_preserving_null_masks,
     fixed_edge_occurrence_probability,
+    motif_shape_summary,
     paired_ses_permutation,
     restrict_to_frozen_edges,
 )
@@ -64,6 +67,16 @@ def test_phase3_configuration_is_frozen() -> None:
     assert settings["mining"]["support_fractions"] == [0.10, 0.20, 0.30]
     assert settings["mining"]["minimum_nodes"] == 3
     assert settings["mining"]["maximum_nodes"] == 5
+    assert settings["mining"]["minimum_paired_states"] == 40
+    assert settings["bootstrap"]["bank_role"] == "independent_evaluation"
+    assert (
+        settings["bootstrap"]["reporting_cutpoints_role"]
+        == "descriptive_only"
+    )
+    assert (
+        settings["bootstrap"]["seed"]
+        != settings["bootstrap"]["selection_bank_seed"]
+    )
     assert settings["decision"]["phase26_retention"] == "HOLD"
     assert settings["decision"]["structural_feasibility"] == "GO"
 
@@ -166,6 +179,11 @@ def test_bootstrap_masks_preserve_joint_edge_realizations() -> None:
             "node_count": [3],
             "edge_count": [2],
             "support_count": [1],
+            "paired_state_count": [1],
+            "evaluable_graph_count": [2],
+            "support_count_50pct": [1],
+            "support_50pct": [True],
+            "primary_support": [True],
             "edge_list": [
                 json.dumps([["A", "B"], ["A", "C"]])
             ],
@@ -175,7 +193,8 @@ def test_bootstrap_masks_preserve_joint_edge_realizations() -> None:
         graph_masks,
         motifs,
         edge_index,
-        {0.50: 1},
+        [0.50],
+        np.ones((2, 1), dtype=bool),
     )
     assert support[:, 0].tolist() == [2, 1, 1, 0]
     assert summary.loc[0, "p_boot_support_50pct"] == 0.75
@@ -193,6 +212,87 @@ def test_primary_bootstrap_prevents_unselected_edges_from_entering() -> None:
         frozen_masks,
     )
     assert restricted.tolist() == [[0b011, 0b010], [0b001, 0b010]]
+
+
+def test_opportunity_support_uses_pair_complete_states() -> None:
+    graph_ids = ["1_lower", "1_higher", "2_lower", "2_higher"]
+    graph_masks = np.asarray([0b001, 0b011, 0b011, 0b001], dtype=np.uint64)
+    opportunity_masks = np.asarray(
+        [0b001, 0b111, 0b111, 0b111],
+        dtype=np.uint64,
+    )
+    motifs = pd.DataFrame(
+        {
+            "motif_id": ["m"],
+            "node_count": [3],
+            "edge_count": [2],
+            "edge_list": [json.dumps([["A", "B"], ["A", "C"]])],
+            "support_count": [2],
+            "support_fraction": [0.5],
+            "graph_ids": [json.dumps(["1_higher", "2_lower"])],
+        }
+    )
+    registry = pd.DataFrame(
+        {
+            "graph_id": graph_ids,
+            "geography_code": [1, 1, 2, 2],
+            "ses_category": ["lower", "higher", "lower", "higher"],
+        }
+    )
+    result, evaluable = annotate_opportunity_support(
+        motifs,
+        graph_masks,
+        opportunity_masks,
+        graph_ids,
+        registry,
+        {("A", "B"): 0, ("A", "C"): 1, ("B", "C"): 2},
+        [0.50],
+        0.50,
+        1,
+    )
+    assert result.loc[0, "paired_state_count"] == 1
+    assert result.loc[0, "evaluable_graph_count"] == 2
+    assert result.loc[0, "support_count"] == 1
+    assert result.loc[0, "distinct_state_support_count"] == 1
+    assert json.loads(result.loc[0, "graph_ids"]) == ["2_lower"]
+    assert evaluable[:, 0].tolist() == [False, False, True, True]
+    swapped, _ = annotate_opportunity_support(
+        motifs,
+        graph_masks[[1, 0, 3, 2]],
+        opportunity_masks[[1, 0, 3, 2]],
+        graph_ids,
+        registry,
+        {("A", "B"): 0, ("A", "C"): 1, ("B", "C"): 2},
+        [0.50],
+        0.50,
+        1,
+    )
+    assert swapped.loc[0, "support_count"] == result.loc[0, "support_count"]
+    assert bool(swapped.loc[0, "support_50pct"])
+
+
+def test_graph_opportunity_masks_distinguish_missing_from_absent() -> None:
+    rows = []
+    for graph_id in ["g1", "g2"]:
+        for source, target in [("A", "B"), ("A", "C"), ("B", "C")]:
+            rows.append(
+                {
+                    "graph_id": graph_id,
+                    "rule_id": "stable",
+                    "source_condition": source,
+                    "target_condition": target,
+                    "pair_eligible": not (
+                        graph_id == "g1" and (source, target) == ("A", "C")
+                    ),
+                }
+            )
+    masks = graph_opportunity_masks(
+        pd.DataFrame(rows),
+        "stable",
+        ["g1", "g2"],
+        {("A", "B"): 0, ("A", "C"): 1, ("B", "C"): 2},
+    )
+    assert masks.tolist() == [0b101, 0b111]
 
 
 def test_fixed_edge_density_probability_is_exact() -> None:
@@ -233,6 +333,40 @@ def test_degree_null_preserves_labeled_degree_sequence() -> None:
     assert diagnostics["changed"].any()
 
 
+def test_degree_null_never_uses_ineligible_dyads() -> None:
+    universe = edge_universe(["A", "B", "C", "D", "E"])
+    edge_index = {edge: index for index, edge in enumerate(universe)}
+    baseline_edges = {
+        ("A", "B"),
+        ("A", "D"),
+        ("A", "E"),
+        ("B", "C"),
+        ("C", "D"),
+        ("D", "E"),
+    }
+    baseline_mask = np.uint64(
+        sum(1 << edge_index[edge] for edge in baseline_edges)
+    )
+    disallowed = ("A", "C")
+    opportunity_mask = np.uint64(
+        sum(
+            1 << index
+            for index, edge in enumerate(universe)
+            if edge != disallowed
+        )
+    )
+    masks, _ = degree_preserving_null_masks(
+        np.asarray([baseline_mask], dtype=np.uint64),
+        universe,
+        20,
+        4,
+        11,
+        np.asarray([opportunity_mask], dtype=np.uint64),
+    )
+    disallowed_bit = np.uint64(1) << np.uint64(edge_index[disallowed])
+    assert not np.bitwise_and(masks[:, 0], disallowed_bit).any()
+
+
 def test_paired_ses_permutation_uses_density_residuals() -> None:
     graph_ids = [
         "1_lower",
@@ -248,8 +382,8 @@ def test_paired_ses_permutation_uses_density_residuals() -> None:
             0b001,
             0b011,
             0b001,
-            0b111,
-            0b101,
+            0b001,
+            0b001,
         ],
         dtype=np.uint64,
     )
@@ -279,17 +413,23 @@ def test_paired_ses_permutation_uses_density_residuals() -> None:
     result = paired_ses_permutation(
         graph_ids,
         graph_masks,
+        np.asarray(
+            [0b111, 0b111, 0b111, 0b111, 0b101, 0b101],
+            dtype=np.uint64,
+        ),
         motifs,
         registry,
         {("A", "B"): 0, ("A", "C"): 1, ("B", "C"): 2},
         99,
         7,
+        2,
     )
-    assert result.loc[0, "state_pair_count"] == 3
+    assert result.loc[0, "state_pair_count"] == 2
     assert result.loc[0, "permutation_scheme"] == (
         "within_state_lower_higher_label_swap"
     )
     assert 0 < result.loc[0, "permutation_p_value"] <= 1
+    assert result.loc[0, "permutation_max_t_p_value_mcse"] >= 0
 
 
 def test_support_percentages_use_ceiling_counts() -> None:
@@ -298,3 +438,22 @@ def test_support_percentages_use_ceiling_counts() -> None:
         0.20: 19,
         0.30: 29,
     }
+
+
+def test_shape_summary_ignores_support_threshold_columns() -> None:
+    motifs = pd.DataFrame(
+        {
+            "node_count": [3],
+            "edge_count": [2],
+            "motif_density": [2 / 3],
+            "is_tree": [True],
+            "is_clique": [False],
+            "is_closed": [True],
+            "is_maximal": [True],
+            "occurrence_class_id": ["c1"],
+            "support_10pct": [True],
+            "support_count_10pct": [10],
+        }
+    )
+    summary = motif_shape_summary(motifs)
+    assert summary["support_level"].tolist() == ["support_10pct"]

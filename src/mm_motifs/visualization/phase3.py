@@ -49,11 +49,7 @@ def draw_motif_bootstrap_stability(
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     probability = f"p_boot_support_{primary_support_percent:02d}pct"
-    primary = stability[
-        stability["baseline_support_count"].ge(
-            stability.attrs["primary_support_count"]
-        )
-    ]
+    primary = stability[stability["primary_support"]]
     figure, axis = plt.subplots(figsize=(9, 6))
     for node_count, frame in primary.groupby("node_count", sort=True):
         axis.scatter(
