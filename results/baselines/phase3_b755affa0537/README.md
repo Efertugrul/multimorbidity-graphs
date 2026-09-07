@@ -1,5 +1,11 @@
 # Phase 3 exploratory motif baseline
 
+**SUPERSEDED:** Do not use this archive for scientific interpretation. It
+reused the Phase 2.6 edge-selection bootstrap bank for motif evaluation and
+treated ineligible graph–dyad cells as absent in density calculations. The
+corrected archive is
+[`phase3_50bda756d7f8`](../phase3_50bda756d7f8/).
+
 This archive freezes the 2024 education-only Phase 3 result produced by config
 digest `b755affa0537` at commit
 `bd2d7290fc36cfe4a464e2fdb1c58720aec529d2`.

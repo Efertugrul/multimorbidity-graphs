@@ -1,0 +1,8 @@
+{
+  "status": "SUPERSEDED",
+  "superseded_by": "results/baselines/phase3_50bda756d7f8",
+  "reasons": [
+    "Motif evaluation reused the Phase 2.6 edge-selection bootstrap bank.",
+    "Density calculations treated ineligible graph-dyad cells as absent."
+  ]
+}

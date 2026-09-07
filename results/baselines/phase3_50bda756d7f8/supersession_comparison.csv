@@ -1,0 +1,11 @@
+metric,superseded_b755affa0537,corrected_50bda756d7f8
+primary_motif_count,542,542
+primary_p_boot_ge_080_count,497,499
+primary_p_boot_ge_090_count,479,484
+primary_median_discovery_retention,0.9501845018450185,0.9501845018450185
+primary_q025_discovery_retention,0.884640221402214,0.8874538745387454
+primary_raw_threshold_median_motif_count,4930.0,4999.5
+primary_raw_threshold_median_jaccard,0.10993914807302231,0.10841084216843369
+fixed_null_positive_z_fraction,1.0,1.0
+degree_null_positive_z_fraction,0.9462659380692168,0.9453551912568307
+exploratory_max_t_p_below_005,3,3
