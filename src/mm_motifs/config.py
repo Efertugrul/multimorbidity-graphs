@@ -62,6 +62,7 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
         "phase25_scenarios",
         "phase26_phi_stability",
         "phase3_gspan",
+        "phase4_confirmatory_replication",
     }:
         raise ValueError(f"Unsupported estimator configuration: {estimator_name}")
     if estimator_name == "phase25_scenarios":
@@ -183,6 +184,60 @@ def _validate(analysis: dict[str, Any], conditions: dict[str, Any], graph: dict[
             raise ValueError("Phase 3 density nulls require replication")
         if int(phase3["ses_permutation"]["permutations"]) < 2:
             raise ValueError("Phase 3 SES permutation requires replication")
+    if estimator_name == "phase4_confirmatory_replication":
+        phase4_analysis = analysis.get("phase4")
+        phase4 = graph.get("phase4")
+        if not phase4_analysis or not phase4:
+            raise ValueError("Phase 4 requires a frozen replication protocol")
+        if (
+            int(year) != 2023
+            or active_ses != "education_binary"
+            or set(definitions) != {"education_binary"}
+            or phase4["primary_ses_definition"] != "education_binary"
+        ):
+            raise ValueError("Phase 4 is education-only 2023 replication")
+        if (
+            float(phase4["point_phi_threshold"]) != 0.12
+            or float(phase4["bootstrap_selection_threshold"]) != 0.12
+            or float(
+                phase4["minimum_bootstrap_selection_probability"]
+            )
+            != 0.90
+        ):
+            raise ValueError("Phase 4 edge thresholds are frozen")
+        bootstrap = phase4["bootstrap"]
+        if (
+            bootstrap["type"] != "bootstrap"
+            or bootstrap["mse"] is not True
+            or int(bootstrap["replicates"]) != 500
+            or int(bootstrap["seed"]) != 20230902
+            or bootstrap["require_all_replicates_valid"] is not True
+        ):
+            raise ValueError("Phase 4 bootstrap design is frozen")
+        discovery = phase4["motif_discovery"]
+        if (
+            discovery["rerun_gspan"] is not False
+            or discovery["permit_new_motifs"] is not False
+        ):
+            raise ValueError("Phase 4 cannot perform motif discovery")
+        methodological = phase4["methodological_replication"]
+        if (
+            float(methodological["pooled_support_minimum"]) != 0.20
+            or int(methodological["minimum_paired_states"]) != 40
+            or int(methodological["frozen_motif_count"]) != 484
+        ):
+            raise ValueError("Phase 4 methodological vocabulary is frozen")
+        confirmatory = phase4["confirmatory_replication"]
+        if (
+            int(confirmatory["hypothesis_count"]) != 3
+            or int(confirmatory["permutations"]) != 99999
+            or int(confirmatory["seed"]) != 20230904
+            or confirmatory["alternative"] != "one_sided_frozen_direction"
+            or confirmatory["multiplicity"] != "holm"
+            or float(confirmatory["alpha"]) != 0.05
+            or confirmatory["primary_decisions_only"] is not True
+        ):
+            raise ValueError("Phase 4 confirmatory family is frozen")
 
     names: set[str] = set()
     required_years = {

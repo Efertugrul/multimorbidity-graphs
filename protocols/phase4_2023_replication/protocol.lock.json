@@ -1,0 +1,20 @@
+{
+  "analytic_2023_data_used_during_freeze": false,
+  "frozen_at_utc": "2026-09-07T18:09:01Z",
+  "payload_files": {
+    "README.md": "6df01f7dae6cf174395d1a0c8b2e8355ade71ed4178300e718bc76b45028e411",
+    "analysis_phase4.yaml": "58f8692e11fff53edaad82c95ade19b30d778a5b9a2263ebc5998dafb337af8d",
+    "conditions.yaml": "a38fb7c0ec87f06f3d22de59934e290b64d50bc4e0b5d1e745eda728662eda87",
+    "confirmatory_hypotheses.csv": "4038f609d28dbbed638f714982d46fcd583cc93087a0ef57e6d669f4926e84e8",
+    "discovery_jurisdictions_2024.csv": "80aaeacbc42293ad67b083eb0aabf708c85f7703c8ac5375899d678aef6743f2",
+    "graph_phase4.yaml": "607d112e79bb9767e961cd9684d5795d6d1eb7926c46998ecd48aa9323baf1cb",
+    "methodological_vocabulary.csv.gz": "8a14482d4d7b0f3f0850c05770f27c2a4ab1418f5404d3454c99192d93e9f3f9",
+    "motif_families.csv.gz": "95ac780f29aed65dddc9e09c5a3e1040f0ac48ca6c188b2c669ad672a3e01e1b",
+    "phi_bootstrap.R": "8ea4c5a67a105285cef41af5fe7d5024739963a3cddce25dbbce41076d8b1c67",
+    "protocol.yaml": "4869d4970bc41dd8fee3cf040d917ed7486fbb5cdc3b7644b76b36c6cc0a7450",
+    "target_jurisdictions.csv": "b83b03d7209433775d5aa85571469c7dc275f51aaa2a93291da4a084c0295a54"
+  },
+  "protocol_id": "phase4_2023_cc5bbcc08283",
+  "protocol_sha256": "cc5bbcc0828396fe028317e9901f76cf5ab36dc12fff7d7a429333485245ccff",
+  "release_tag": "phase4-2023-replication-v1.0.0"
+}

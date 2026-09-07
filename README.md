@@ -4,9 +4,10 @@ This repository builds population-specific multimorbidity association graphs
 from BRFSS data to evaluate whether frequent subgraph mining is a viable next
 step for identifying socioeconomic signatures of multimorbidity.
 
-Current scope: Phases 0–3. Phase 3 performs exploratory frequent-subgraph
-discovery, motif robustness checks, density nulls, and paired SES comparison.
-The code intentionally stops before confirmatory claims and 2023 replication.
+Current scope: completed Phases 0–3 plus a frozen Phase 4 replication protocol.
+Phase 3 performs exploratory frequent-subgraph discovery, motif robustness
+checks, density nulls, and paired SES comparison. No 2023 analytic data were
+used to create the replication freeze.
 
 ## Scientific boundary
 
@@ -178,6 +179,42 @@ edge-detection precision caused by sample size or disease prevalence. Motif
 discovery never uses SES direction or p-values, and frozen motifs still
 require 2023 replication.
 
+## Frozen 2023 replication protocol
+
+The preregistered, machine-validated protocol is frozen under
+[`protocols/phase4_2023_replication/`](protocols/phase4_2023_replication/).
+It contains exact condition, SES, graph, bootstrap, motif, density,
+jurisdiction, permutation, direction, and multiplicity definitions.
+
+Two non-overlapping roles are fixed:
+
+- 484 independently bootstrap-robust 2024 motifs form the methodological
+  vocabulary. Their exact 2023 support is evaluated without rerunning gSpan.
+- Three exact, directional 2024 SES motifs form the confirmatory family.
+  They use a one-sided studentized Rademacher wild sign-flip and Holm
+  correction across three tests. Only the primary 2023 jurisdiction set can
+  determine replication; the matched-jurisdiction sensitivity cannot rescue
+  a failure.
+
+The 484 raw motifs are computational patterns, not 484 independent biological
+phenomena. They are grouped into 299 occurrence-equivalence families, with
+family representatives and closed motifs reserved for interpretation. This
+grouping does not alter the exact motif-level replication targets.
+
+The sign-flip endpoint is exact only under componentwise state-contrast sign
+symmetry or within-state SES-label exchangeability; its stated justification
+is an asymptotic jurisdiction-level wild bootstrap, not randomization of
+observational education groups. The graphs are not age/sex standardized, and
+graph-selection uncertainty is not fully propagated into the confirmatory
+p-values.
+
+Any protocol amendment requires a new version, lock, commit, and release tag
+before 2023 results are examined. In-place changes fail checksum validation.
+The frozen runner is `multimorbidity-motifs phase4`; it exposes no config,
+year, threshold, or motif-selection overrides. It also requires matching
+downloader metadata, the frozen CDC URL, XPT hash and byte count, 433,323
+records, and all required variables before analysis.
+
 ## Configuration
 
 - `configs/conditions.yaml`: year-specific condition registry and coding rules
@@ -192,6 +229,8 @@ require 2023 replication.
   adjustment-concordance, and final gate criteria
 - `configs/graph_phase3.yaml`: frozen graph input, gSpan support spectrum,
   motif bootstrap, density nulls, and paired SES permutation settings
+- `configs/analysis_phase4.yaml`: locked education-only 2023 target scope
+- `configs/graph_phase4.yaml`: locked graph and confirmatory endpoint rules
 
 The provisional default uses ten conditions, California, Florida, Michigan,
 New York, and Texas, and two education strata:
@@ -349,6 +388,11 @@ bootstrap distributions, gSpan discovery-set stability, fixed-density and
 degree-preserving nulls, paired density-adjusted SES permutations, figures,
 and an explicit exploratory report. Selection-conditional null probabilities
 are diagnostics rather than confirmatory p-values.
+
+The fixed-edge and degree-preserving null summaries are not the headline
+validation because motifs were selected for observed recurrence. The primary
+reproducibility evidence is the independent survey-bootstrap evaluation, with
+independent-year replication prespecified as the confirmatory test.
 
 ## Reproducibility
 

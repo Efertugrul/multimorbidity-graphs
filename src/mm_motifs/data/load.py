@@ -8,6 +8,19 @@ import pandas as pd
 import pyreadstat
 
 
+def xport_dimensions(path: Path) -> tuple[int, list[str]]:
+    _, metadata = pyreadstat.read_xport(
+        str(path),
+        metadataonly=True,
+        encoding="latin1",
+        disable_datetime_conversion=True,
+    )
+    row_count = getattr(metadata, "number_rows", None)
+    if row_count is None:
+        row_count = sum(len(chunk) for chunk in iter_xport(path, 50000))
+    return int(row_count), list(metadata.column_names)
+
+
 def variable_metadata(path: Path) -> pd.DataFrame:
     _, metadata = pyreadstat.read_xport(
         str(path),

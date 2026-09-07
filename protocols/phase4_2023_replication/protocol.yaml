@@ -1,0 +1,326 @@
+protocol:
+  id: phase4_2023_replication_v1
+  version: 1.0.0
+  status: FROZEN_BEFORE_2023_ANALYSIS
+  release_tag: phase4-2023-replication-v1.0.0
+  target_year: 2023
+  discovery_year: 2024
+  inference_role: confirmatory_independent_year_replication
+  analytic_2023_data_used_during_freeze: false
+  immutable_freeze_requirement:
+    containing_commit_must_be_tagged: true
+    tag_must_be_pushed_before_2023_data_access: true
+    checksums_alone_are_not_external_timestamp_proof: true
+  amendment_policy:
+    require_new_version: true
+    require_reason_and_timestamp: true
+    prohibit_post_access_redefinition: true
+
+discovery_source:
+  archive: results/baselines/phase3_50bda756d7f8
+  config_digest: 50bda756d7f8
+  source_commit: 5a5846ff21e09393953af51310e59ca2b14a4e27
+  archive_commit: 5d42a1d391b183d7d63aeead1066a55ec19b3946
+  manifest_sha256: 257c3ed2dfaafbfa5aac0773a72e0321e986abd7f554d0b886753d8357b80f68
+  motif_catalog_sha256: a5b8e4174159e08c1a63ed4fe2c0dfc0ac507f644629d2fb47d37914da6c24f0
+  ses_results_sha256: 5c5fc06c8321137fc1c2b2119d8b2959c4fea811ddff2bb4a20ef49b15bfc824
+
+frozen_snapshots:
+  condition_registry:
+    path: conditions.yaml
+    registry_version: 0.1.0
+    source_sha256: a38fb7c0ec87f06f3d22de59934e290b64d50bc4e0b5d1e745eda728662eda87
+  target_analysis:
+    path: analysis_phase4.yaml
+    source_sha256: 58f8692e11fff53edaad82c95ade19b30d778a5b9a2263ebc5998dafb337af8d
+  target_graph:
+    path: graph_phase4.yaml
+    source_sha256: 607d112e79bb9767e961cd9684d5795d6d1eb7926c46998ecd48aa9323baf1cb
+  bootstrap_script:
+    path: phi_bootstrap.R
+    source_sha256: 8ea4c5a67a105285cef41af5fe7d5024739963a3cddce25dbbce41076d8b1c67
+
+execution:
+  command: multimorbidity-motifs phase4
+  workflow: src/mm_motifs/workflows/phase4.py
+  target_analysis_config: configs/analysis_phase4.yaml
+  target_graph_config: configs/graph_phase4.yaml
+  condition_registry: configs/conditions.yaml
+  reject_any_config_snapshot_mismatch: true
+  reject_any_runtime_version_mismatch: true
+  require_clean_tagged_release_commit: true
+  permit_skip_flags: false
+  specification_precedence:
+    - protocol.yaml
+    - frozen target configuration snapshots
+    - tagged executable implementation
+  implementation_release: phase4-2023-replication-v1.0.0
+  input_integrity:
+    require_downloader_metadata: true
+    require_exact_frozen_source_url: true
+    require_metadata_xpt_sha256_match: true
+    require_metadata_xpt_byte_count_match: true
+    require_expected_row_count: 433323
+    require_all_analysis_variables: true
+
+population:
+  geography_scope: eligible_us_states_and_dc
+  territory_codes_excluded: [66, 72, 78]
+  target_registry: target_jurisdictions.csv
+  discovery_registry: discovery_jurisdictions_2024.csv
+  minimum_unweighted_population_n: 1000
+  require_paired_ses_strata: true
+  primary_2023_jurisdictions: year_specific_eligible_from_target_registry
+  matched_sensitivity_jurisdictions: intersection_with_discovery_registry
+  confirmatory_decision_set: primary_2023_jurisdictions_only
+  sensitivity_can_rescue_primary_failure: false
+  sensitivity_is_descriptive_only: true
+  equal_jurisdiction_weighting: true
+  minimum_motif_evaluable_state_pairs: 40
+  insufficient_opportunity_rule: count_as_not_replicated
+  graph_usability:
+    require_both_education_strata: true
+    require_every_point_eligible_dyad_bootstrap_complete: true
+    exclude_entire_state_if_either_ses_graph_unusable: true
+    zero_point_eligible_dyads: graph_unusable
+
+ses:
+  definition: education_binary
+  source_variable_2023: _EDUCAG
+  lower_codes: [1, 2]
+  higher_codes: [3, 4]
+  missing_codes: [9]
+  income_analysis: prohibited
+
+survey_design:
+  state: _STATE
+  weight: _LLCPWT
+  strata: _STSTR
+  psu: _PSU
+  state_specific_design: true
+  nest: true
+  lonely_psu: adjust
+  adjust_domain_lonely: true
+
+nodes:
+  minimum_valid_n: 500
+  minimum_cases: 30
+
+edges:
+  estimator: survey_weighted_phi
+  undirected: true
+  minimum_complete_n: 500
+  minimum_source_cases: 30
+  minimum_target_cases: 30
+  minimum_cooccurring_cases: 10
+  point_phi_threshold: 0.12
+  bootstrap_selection_threshold: 0.12
+  minimum_bootstrap_selection_probability: 0.90
+  require_all_bootstrap_replicates_valid: true
+  point_eligible_dyad:
+    require_complete_n_at_least: 500
+    require_each_condition_cases_at_least: 30
+    require_cooccurring_cases_at_least: 10
+  stable_edge_rule:
+    require_point_eligible_dyad: true
+    require_point_phi_at_least: 0.12
+    require_bootstrap_probability_at_least: 0.90
+    require_bootstrap_status_ok: true
+    require_valid_replicates_exactly: 500
+
+edge_bootstrap:
+  design: survey_bootstrap_replicate_weights
+  type: bootstrap
+  mse: true
+  replicates: 500
+  seed: 20230902
+  state_seed_rule: base_seed_plus_fips_code
+  same_replicate_design_for_both_ses_domains_within_state: true
+  job_universe: point_eligible_dyads_only
+  failed_point_eligible_dyad_rule: entire_population_graph_unusable
+  failed_population_graph_rule: entire_state_pair_excluded
+  checkpoints:
+    cache_key_inputs:
+      - bootstrap_script_sha256
+      - harmonized_data_sha256
+      - exact_jobs_csv
+      - replicate_count
+      - threshold
+      - seed
+      - runtime_versions
+    accept_only_exact_job_keys: true
+    result_row_statuses: [ok, partial, state_error]
+    permit_zero_valid_replicates_for_failure_rows: true
+    graph_selection_accepts_only_complete_500_replicate_rows: true
+  runtime:
+    r: 4.4.3
+    survey: 4.5
+    data_table: 1.18.4
+
+motifs:
+  connected: true
+  disease_labeled: true
+  undirected: true
+  induced: false
+  minimum_nodes: 3
+  maximum_nodes: 5
+  occurrence_rule: all_required_edges_present_extra_edges_allowed
+  evaluability_rule:
+    required_edges_only: true
+    each_required_edge_must_be_point_eligible_in_both_ses_graphs: true
+    extra_motif_internal_dyads_need_not_be_eligible: true
+    node_eligibility_beyond_required_edge_criteria: false
+    pair_complete_state_denominator: true
+  canonicalization:
+    node_order: lexicographic_canonical_condition_name
+    edge_endpoint_order: lexicographic
+    edge_order: lexicographic
+    payload_json: compact_sorted_keys_utf8
+    digest: sha256
+    motif_id: motif_prefix_plus_first_16_hex
+  rerun_gspan_in_2023: false
+  permit_2023_motif_discovery: false
+
+methodological_replication:
+  registry: methodological_vocabulary.csv.gz
+  family_registry: motif_families.csv.gz
+  frozen_motif_count: 484
+  frozen_occurrence_family_count: 299
+  discovery_selection:
+    pooled_support_minimum: 0.20
+    independent_bootstrap_support_probability_minimum: 0.90
+  primary_2023_reproduction:
+    pooled_support_minimum: 0.20
+    motif_specific_pair_complete_denominator: true
+    minimum_state_pairs: 40
+    denominator_for_retention: all_484_frozen_motifs
+    no_2023_screen_before_evaluation: true
+    decision_role: descriptive_methodological_reproduction
+  reporting:
+    raw_motif_vocabulary: computational_output
+    occurrence_families_and_closed_motifs: interpretation_units
+    family_status_is_descriptive: true
+    support_rank_correlation: true
+    support_absolute_difference: true
+
+density_standardization:
+  primary: fixed_eligible_dyad_edge_count_expected_occurrence
+  observed_occurrence: exact_required_edge_subset
+  possible_edges: graph_specific_eligible_dyad_count
+  graph_edges: graph_specific_selected_stable_edge_count
+  expected_probability: choose_N_minus_r_m_minus_r_divided_by_choose_N_m
+  residual: observed_minus_expected
+  condition_on_motif_evaluability: true
+  boundary_rules:
+    graph_edges_less_than_motif_edges:
+      expected_probability: 0.0
+      observed_occurrence: 0
+      residual: 0.0
+    motif_edges_greater_than_eligible_dyads: motif_not_evaluable
+    graph_edges_greater_than_eligible_dyads: fatal_integrity_error
+  prohibit_selection_conditional_null_enrichment_as_replication_endpoint: true
+
+confirmatory_replication:
+  registry: confirmatory_hypotheses.csv
+  hypothesis_count: 3
+  frozen_hypotheses:
+    - hypothesis_id: H1
+      motif_id: motif_a79cab0e1b2c2fbf
+      expected_enrichment: higher
+      direction_sign: -1
+    - hypothesis_id: H2
+      motif_id: motif_eeb4d747c66beaa4
+      expected_enrichment: higher
+      direction_sign: -1
+    - hypothesis_id: H3
+      motif_id: motif_07019d963bc595b3
+      expected_enrichment: lower
+      direction_sign: 1
+  effect_contrast: lower_minus_higher_density_residual
+  estimand: equally_weighted_mean_state_level_structural_SES_contrast
+  estimand_population: conceptual_superpopulation_of_eligible_US_state_and_DC_jurisdictions
+  statistic: paired_studentized_mean
+  statistic_definition:
+    mean: arithmetic_mean_over_motif_evaluable_state_pairs
+    sample_variance_denominator: state_pair_count_minus_one
+    standard_error: sample_standard_deviation_divided_by_sqrt_state_pair_count
+    zero_variance_positive_mean: positive_infinity
+    zero_variance_negative_mean: negative_infinity
+    zero_variance_zero_mean: 0.0
+  alternatives: one_sided_frozen_direction
+  oriented_null: direction_sign_times_mean_contrast_at_most_zero
+  oriented_alternative: direction_sign_times_mean_contrast_greater_than_zero
+  permutations: 99999
+  seed: 20230904
+  rng: numpy_PCG64
+  rng_draw: integers_0_or_1_int8_then_transform_2x_minus_1
+  state_order: ascending_numeric_fips
+  sign_rule: one_rademacher_sign_per_state_shared_across_all_hypotheses
+  matched_sensitivity_signs: subset_primary_sign_bank_by_fips
+  calibration:
+    name: studentized_rademacher_wild_sign_flip
+    exact_only_under: componentwise_state_contrast_sign_symmetry_or_within_state_lower_higher_label_exchangeability
+    primary_justification: asymptotic_wild_bootstrap_at_mean_zero_boundary
+    assumptions:
+      - independent_jurisdiction_level_contrasts
+      - finite_nonzero_second_moments
+      - no_single_jurisdiction_asymptotically_dominates
+      - studentized_mean_is_regular
+    exchangeability_is_not_guaranteed_by_observational_education_groups: true
+  monte_carlo_p_value: plus_one_correction
+  one_sided_exceedance_comparison: greater_than_or_equal_including_ties
+  multiplicity:
+    method: holm
+    family_size: 3
+    alpha: 0.05
+    ordering: ascending_raw_p_stable_ties_by_family_order
+    adjusted_formula: cumulative_max_of_remaining_family_size_times_ordered_p_capped_at_1
+  hypothesis_replication_rule:
+    require_frozen_direction: true
+    require_holm_adjusted_p_at_most: 0.05
+    insufficient_state_pairs_assign_p: 1.0
+    primary_analysis_only: true
+    sensitivity_cannot_change_replication_status: true
+  aggregate_study_success_gate: none
+  causal_interpretation: prohibited
+
+failure_handling:
+  missing_or_unreadable_2023_source: abort_run
+  condition_or_SES_coding_mismatch: abort_run
+  runtime_or_config_mismatch: abort_run
+  bootstrap_error_on_point_ineligible_dyad: ignore_for_graph_usability
+  bootstrap_error_on_point_eligible_dyad: exclude_population_graph_and_state_pair
+  partial_state_pair: exclude_state_from_both_primary_and_sensitivity
+  fewer_than_40_usable_state_pairs_overall:
+    complete_descriptive_outputs: true
+    all_confirmatory_hypotheses_assign_p: 1.0
+    all_replication_decisions: false
+  motif_fewer_than_40_evaluable_state_pairs:
+    test_status: insufficient_opportunity
+    one_sided_p_value: 1.0
+    replication_status: false
+  nonfinite_or_impossible_graph_counts: abort_run
+
+interpretation_limits:
+  respondent_level_association: prohibited
+  causal_SES_effect: prohibited
+  age_sex_standardized_association: false
+  confirmatory_sign_flip_is_finite_sample_exact_without_symmetry: false
+  graph_thresholding_uncertainty_fully_propagated_into_SES_p_values: false
+  phase3_bootstrap_result: conditional_frozen_edge_retention_not_full_pipeline_stability
+  fixed_edge_and_degree_null_results: exploratory_context_not_replication_evidence
+
+runtime:
+  python: 3.12.8
+  numpy: 2.2.6
+  pandas: 2.3.1
+  networkx: 3.6.1
+
+prohibited_adaptations:
+  - rerun_gspan_to_choose_2023_tests
+  - add_or_remove_confirmatory_hypotheses
+  - change_hypothesis_direction
+  - tune_phi_or_bootstrap_thresholds
+  - tune_support_or_eligibility_thresholds
+  - switch_ses_definition
+  - use_2023_results_to_amend_this_protocol

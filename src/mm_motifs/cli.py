@@ -9,6 +9,7 @@ from mm_motifs.workflows.audit import run_audit
 from mm_motifs.workflows.phase25 import run_phase25
 from mm_motifs.workflows.phase26 import run_phase26
 from mm_motifs.workflows.phase3 import run_phase3
+from mm_motifs.workflows.phase4 import run_phase4
 from mm_motifs.workflows.prototype import run_prototype
 
 
@@ -27,7 +28,7 @@ def _add_config_arguments(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="multimorbidity-motifs",
-        description="BRFSS multimorbidity graph Phases 0–3",
+        description="BRFSS multimorbidity graph Phases 0–4",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -88,6 +89,18 @@ def build_parser() -> argparse.ArgumentParser:
         graph_default="configs/graph_phase3.yaml",
     )
     phase3.add_argument("--workers", type=int, default=4)
+    phase4 = subparsers.add_parser(
+        "phase4",
+        help="Run the frozen 2023 replication protocol",
+    )
+    phase4.set_defaults(
+        analysis="configs/analysis_phase4.yaml",
+        conditions="configs/conditions.yaml",
+        graph="configs/graph_phase4.yaml",
+        year=None,
+    )
+    phase4.add_argument("--verbose", action="store_true")
+    phase4.add_argument("--workers", type=int, default=4)
     return parser
 
 
@@ -143,6 +156,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "phase3":
         print(
             run_phase3(
+                config,
+                verbose=args.verbose,
+                workers=max(1, args.workers),
+            )
+        )
+    elif args.command == "phase4":
+        print(
+            run_phase4(
                 config,
                 verbose=args.verbose,
                 workers=max(1, args.workers),

@@ -76,18 +76,29 @@ def _valid_results(
     observed = result[keys].astype(str).agg("\r".join, axis=1).sort_values()
     masks = result["bootstrap_selection_mask"].astype(str)
     mask_values = masks.str.removeprefix("b")
+    valid_replicates = result["bootstrap_replicates_valid"]
+    status = result["bootstrap_status"]
+    status_valid = (
+        (status.eq("ok") & valid_replicates.eq(replicates))
+        | (
+            status.eq("partial")
+            & valid_replicates.ge(0)
+            & valid_replicates.lt(replicates)
+        )
+        | (status.eq("state_error") & valid_replicates.eq(0))
+    )
     return (
         len(result) == len(jobs)
         and expected.tolist() == observed.tolist()
-        and result["bootstrap_status"].isin(["ok", "partial"]).all()
+        and status_valid.all()
         and result["bootstrap_replicates_requested"].eq(replicates).all()
-        and result["bootstrap_replicates_valid"].gt(0).all()
-        and result["bootstrap_replicates_valid"].le(replicates).all()
+        and valid_replicates.ge(0).all()
+        and valid_replicates.le(replicates).all()
         and masks.str.startswith("b").all()
         and mask_values.str.len().eq(replicates).all()
         and mask_values.str.fullmatch(r"[01x]+").all()
         and mask_values.str.count(r"[01]").eq(
-            result["bootstrap_replicates_valid"]
+            valid_replicates
         ).all()
     )
 

@@ -1,0 +1,49 @@
+estimator:
+  name: phase4_confirmatory_replication
+  inference_scope: frozen_independent_year_replication
+
+edge_criteria:
+  minimum_effect: 0.12
+  minimum_complete_n: 500
+  minimum_condition_cases: 30
+  minimum_cooccurring_cases: 10
+  require_fdr: false
+  maximum_q_value: 0.05
+
+node_criteria:
+  minimum_valid_n: 500
+  minimum_cases: 30
+
+phase4:
+  protocol_directory: protocols/phase4_2023_replication
+  primary_ses_definition: education_binary
+  stable_rule_id: phi_012_stable
+  point_phi_threshold: 0.12
+  bootstrap_selection_threshold: 0.12
+  minimum_bootstrap_selection_probability: 0.90
+  bootstrap:
+    type: bootstrap
+    mse: true
+    replicates: 500
+    seed: 20230902
+    require_all_replicates_valid: true
+  motif_discovery:
+    rerun_gspan: false
+    permit_new_motifs: false
+  methodological_replication:
+    pooled_support_minimum: 0.20
+    minimum_paired_states: 40
+    frozen_motif_count: 484
+  confirmatory_replication:
+    hypothesis_count: 3
+    permutations: 99999
+    seed: 20230904
+    alternative: one_sided_frozen_direction
+    multiplicity: holm
+    alpha: 0.05
+    primary_decisions_only: true
+
+visualization:
+  width: 9
+  height: 7
+  dpi: 160
