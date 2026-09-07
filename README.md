@@ -215,6 +215,13 @@ year, threshold, or motif-selection overrides. It also requires matching
 downloader metadata, the frozen CDC URL, XPT hash and byte count, 433,323
 records, and all required variables before analysis.
 
+Execution deviation `PH4-D001` was recorded after the first 2023 run stopped
+at pre-harmonization runtime validation. YAML had parsed the frozen Survey
+package version as a number while the runtime reported the same version as
+text. Release `phase4-2023-replication-v1.0.1` authorizes string normalization
+for version comparison only; no scientific, graph, motif, or inferential logic
+changed, and no analytic results existed when the deviation was defined.
+
 ## Configuration
 
 - `configs/conditions.yaml`: year-specific condition registry and coding rules

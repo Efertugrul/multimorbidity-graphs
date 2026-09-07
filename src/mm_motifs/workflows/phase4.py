@@ -155,9 +155,13 @@ def _validate_runtime(
         "survey": str(r_versions["survey"]),
         "data_table": str(r_versions["data_table"]),
     }
-    if observed_r != expected_r:
+    normalized_expected_r = {
+        name: str(value) for name, value in expected_r.items()
+    }
+    if observed_r != normalized_expected_r:
         raise RuntimeError(
-            f"R runtime differs from protocol: {observed_r} != {expected_r}"
+            "R runtime differs from protocol: "
+            f"{observed_r} != {normalized_expected_r}"
         )
 
 
@@ -505,6 +509,8 @@ def run_phase4(
         {
             "protocol_id": lock["protocol_id"],
             "protocol_sha256": lock["protocol_sha256"],
+            "execution_release_tag": lock["execution_release_tag"],
+            "protocol_deviation_id": lock["protocol_deviation_id"],
             "source_xpt": str(source),
             "source_sha256": source_sha256,
             "input_provenance": input_provenance,

@@ -36,6 +36,7 @@ from mm_motifs.workflows.phase4 import (
     _complete_bootstrap_graphs,
     _phase4_bootstrap_jobs,
     _paired_usable_registry,
+    _validate_runtime,
     _validate_source_input,
 )
 
@@ -455,3 +456,32 @@ def test_phase4_input_provenance_is_enforced(
     )
     with pytest.raises(ValueError, match="Expected 433323"):
         _validate_source_input(config, source)
+
+
+def test_runtime_version_scalar_deviation_is_narrow() -> None:
+    protocol = yaml.safe_load((PROTOCOL / "protocol.yaml").read_text())
+    observed = {
+        "r": "R version 4.4.3 (2025-02-28)",
+        "survey": "4.5",
+        "data_table": "1.18.4",
+    }
+    _validate_runtime(protocol, observed)
+    with pytest.raises(RuntimeError, match="R runtime differs"):
+        _validate_runtime(protocol, {**observed, "survey": "4.5.1"})
+    deviation_record = yaml.safe_load(
+        (
+            Path("protocols/phase4_2023_replication_deviations")
+            / "PH4-D001.yaml"
+        ).read_text()
+    )
+    deviation = deviation_record["deviation"]
+    assert deviation["original_protocol_id"] == "phase4_2023_cc5bbcc08283"
+    assert deviation_record["authorized_change"] == {
+        "scope": "runtime_version_scalar_type_normalization_only",
+        "normalize_expected_runtime_versions_to_strings": True,
+        "permit_any_runtime_version_change": False,
+        "scientific_parameters_changed": False,
+        "graph_logic_changed": False,
+        "motif_logic_changed": False,
+        "inferential_logic_changed": False,
+    }

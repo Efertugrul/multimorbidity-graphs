@@ -575,25 +575,37 @@ def _validate_execution_sources(
 def _validate_release_context(
     protocol: dict[str, Any],
     directory: Path,
-) -> None:
+    protocol_id: str,
+) -> dict[str, str | None]:
     project_root = _project_root(directory)
-    tag = str(protocol["protocol"]["release_tag"])
-    tag_type = subprocess.run(
-        ["git", "cat-file", "-t", f"refs/tags/{tag}"],
-        cwd=project_root,
-        check=False,
-        capture_output=True,
-        text=True,
+    original_tag = str(protocol["protocol"]["release_tag"])
+    release_contexts: dict[str, str | None] = {original_tag: None}
+    deviation_path = (
+        directory.parent
+        / "phase4_2023_replication_deviations"
+        / "PH4-D001.yaml"
     )
-    if tag_type.returncode or tag_type.stdout.strip() != "tag":
-        raise ValueError("Phase 4 requires its annotated release tag")
-    tag_commit = subprocess.run(
-        ["git", "rev-list", "-n", "1", tag],
-        cwd=project_root,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
+    if deviation_path.exists():
+        deviation_record = yaml.safe_load(
+            deviation_path.read_text(encoding="utf-8")
+        )
+        deviation = deviation_record["deviation"]
+        authorized = deviation_record["authorized_change"]
+        if (
+            deviation["status"] != "APPROVED_MECHANICAL_EXECUTION_FIX"
+            or deviation["original_protocol_id"] != protocol_id
+            or deviation["original_release_tag"] != original_tag
+            or authorized["scope"]
+            != "runtime_version_scalar_type_normalization_only"
+            or authorized["scientific_parameters_changed"] is not False
+            or authorized["graph_logic_changed"] is not False
+            or authorized["motif_logic_changed"] is not False
+            or authorized["inferential_logic_changed"] is not False
+        ):
+            raise ValueError("Invalid Phase 4 protocol deviation record")
+        release_contexts[str(deviation["authorized_release_tag"])] = str(
+            deviation["id"]
+        )
     head_commit = subprocess.run(
         ["git", "rev-parse", "HEAD"],
         cwd=project_root,
@@ -601,7 +613,27 @@ def _validate_release_context(
         capture_output=True,
         text=True,
     ).stdout.strip()
-    if head_commit != tag_commit:
+    matches: list[tuple[str, str | None]] = []
+    for tag, deviation_id in release_contexts.items():
+        tag_type = subprocess.run(
+            ["git", "cat-file", "-t", f"refs/tags/{tag}"],
+            cwd=project_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if tag_type.returncode or tag_type.stdout.strip() != "tag":
+            continue
+        tag_commit = subprocess.run(
+            ["git", "rev-list", "-n", "1", tag],
+            cwd=project_root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if head_commit == tag_commit:
+            matches.append((tag, deviation_id))
+    if len(matches) != 1:
         raise ValueError("Phase 4 must run from its tagged release commit")
     dirty = subprocess.run(
         ["git", "status", "--porcelain", "--untracked-files=normal"],
@@ -612,6 +644,11 @@ def _validate_release_context(
     ).stdout
     if dirty.strip():
         raise ValueError("Phase 4 requires a clean tagged worktree")
+    tag, deviation_id = matches[0]
+    return {
+        "execution_release_tag": tag,
+        "protocol_deviation_id": deviation_id,
+    }
 
 
 def validate_replication_protocol(
@@ -711,9 +748,7 @@ def validate_replication_protocol(
         vocabulary,
         hypotheses,
     )
-    if require_release_context:
-        _validate_release_context(protocol, root)
-    return {
+    result = {
         "protocol_id": json.loads(
             (root / "protocol.lock.json").read_text(encoding="utf-8")
         )["protocol_id"],
@@ -724,3 +759,12 @@ def validate_replication_protocol(
         "target_jurisdiction_count": len(target_codes),
         "discovery_jurisdiction_count": len(discovery_codes),
     }
+    if require_release_context:
+        result.update(
+            _validate_release_context(
+                protocol,
+                root,
+                str(result["protocol_id"]),
+            )
+        )
+    return result

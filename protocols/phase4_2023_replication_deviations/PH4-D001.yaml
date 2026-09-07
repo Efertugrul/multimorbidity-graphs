@@ -1,0 +1,44 @@
+deviation:
+  id: PH4-D001
+  status: APPROVED_MECHANICAL_EXECUTION_FIX
+  detected_at_utc: 2026-09-07T23:18:14Z
+  original_protocol_id: phase4_2023_cc5bbcc08283
+  original_protocol_sha256: cc5bbcc0828396fe028317e9901f76cf5ab36dc12fff7d7a429333485245ccff
+  original_release_tag: phase4-2023-replication-v1.0.0
+  authorized_release_tag: phase4-2023-replication-v1.0.1
+
+trigger:
+  stage: pre_harmonization_runtime_validation
+  exception: R_runtime_version_type_mismatch
+  expected_yaml_value:
+    survey: 4.5
+    parsed_type: float
+  observed_runtime_value:
+    survey: "4.5"
+    parsed_type: string
+
+data_access_boundary:
+  source_downloaded: true
+  source_sha256: 3d3bf8ef5195bde227828ddc4c90745b76e8b304f8f5b9a043b6d99895fd1615
+  integrity_metadata_read: true
+  row_count_and_variable_names_read: true
+  respondent_values_harmonized: false
+  population_registries_computed: false
+  graphs_computed: false
+  motifs_evaluated: false
+  confirmatory_statistics_computed: false
+  analytic_results_examined: false
+
+authorized_change:
+  scope: runtime_version_scalar_type_normalization_only
+  normalize_expected_runtime_versions_to_strings: true
+  permit_any_runtime_version_change: false
+  scientific_parameters_changed: false
+  graph_logic_changed: false
+  motif_logic_changed: false
+  inferential_logic_changed: false
+
+reporting:
+  disclose_in_phase4_manifest: true
+  original_protocol_remains_immutable: true
+  classify_as_protocol_deviation: true
