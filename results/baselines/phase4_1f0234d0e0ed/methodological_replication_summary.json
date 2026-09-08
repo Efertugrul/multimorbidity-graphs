@@ -1,0 +1,8 @@
+{
+  "frozen_motif_count": 484,
+  "median_absolute_support_difference": 0.06382978723404253,
+  "minimum_state_pair_count": 46,
+  "replicated_motif_count": 448,
+  "retention_fraction_all_frozen_motifs": 0.9256198347107438,
+  "support_spearman_correlation": 0.9136165403902384
+}

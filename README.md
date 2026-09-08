@@ -4,10 +4,10 @@ This repository builds population-specific multimorbidity association graphs
 from BRFSS data to evaluate whether frequent subgraph mining is a viable next
 step for identifying socioeconomic signatures of multimorbidity.
 
-Current scope: completed Phases 0–3 plus a frozen Phase 4 replication protocol.
-Phase 3 performs exploratory frequent-subgraph discovery, motif robustness
-checks, density nulls, and paired SES comparison. No 2023 analytic data were
-used to create the replication freeze.
+Current scope: completed Phases 0–4. Phase 3 performs exploratory
+frequent-subgraph discovery, motif robustness checks, density nulls, and
+paired SES comparison. Phase 4 is an independent-year replication in BRFSS
+2023 under a protocol frozen before 2023 analytic access.
 
 ## Scientific boundary
 
@@ -176,8 +176,8 @@ jurisdictions. They estimate an education-stratum structural contrast under
 within-state exchangeability, not a causal SES effect. MaxT and BH adjustments
 are reported. Density conditioning does not remove SES differences in
 edge-detection precision caused by sample size or disease prevalence. Motif
-discovery never uses SES direction or p-values, and frozen motifs still
-require 2023 replication.
+discovery never uses SES direction or p-values. The frozen motifs were carried
+forward unchanged to the completed 2023 replication.
 
 ## Frozen 2023 replication protocol
 
@@ -221,6 +221,29 @@ package version as a number while the runtime reported the same version as
 text. Release `phase4-2023-replication-v1.0.1` authorizes string normalization
 for version comparison only; no scientific, graph, motif, or inferential logic
 changed, and no analytic results existed when the deviation was defined.
+
+## BRFSS 2023 independent-year replication result
+
+The checksummed output archive is
+[`results/baselines/phase4_1f0234d0e0ed/`](results/baselines/phase4_1f0234d0e0ed/).
+It contains 94 graphs from 47 paired jurisdictions and 951 selected stable
+edges. Every point-eligible dyad bootstrap completed.
+
+Of 484 frozen motifs, 448 reproduced at least 20% pooled support: 92.6%.
+The 2024–2023 support Spearman correlation was 0.914, with a median absolute
+support difference of 6.38 percentage points.
+
+One of the three prespecified SES hypotheses replicated after Holm correction:
+the lower-SES arthritis–COPD–current-asthma–depression–diabetes tree
+(`H3`, Holm `p = 0.00315`). The two higher-SES hypotheses were direction
+concordant but did not replicate (`H1`, Holm `p = 0.26384`; `H2`, Holm
+`p = 0.10616`). The descriptive matched-jurisdiction sensitivity had the same
+Holm-threshold pattern—H3 only—and cannot alter the primary decisions.
+
+No aggregate study-level success gate was frozen. The defensible conclusion is
+strong methodological temporal reproduction with selective, one-of-three
+confirmatory SES replication. This remains within-BRFSS evidence rather than
+external cohort validation.
 
 ## Configuration
 
@@ -408,12 +431,15 @@ Each manifest records the dataset year, condition registry, population
 definition, edge rule, sample-size threshold, software version, Git commit
 when available, random seed, timestamp, and the explicit phase boundary.
 
-The 2023 paths and stable condition mappings are configured for later
-replication, but 2023 is not run as part of the current milestone:
+The 2023 replication was executed from the documented patch release:
 
 ```bash
-multimorbidity-motifs download --year 2023
+git checkout phase4-2023-replication-v1.0.1
+multimorbidity-motifs phase4
 ```
+
+Its exact output is archived under
+`results/baselines/phase4_1f0234d0e0ed/`.
 
 ## Tests
 
@@ -421,10 +447,9 @@ multimorbidity-motifs download --year 2023
 pytest
 ```
 
-Review `viability_report.json`, graph statistics, edge tables, and network
-figures before authorizing any Phase 3 implementation. The report emits a
-density caution when any prototype graph reaches the configured `0.70`
-threshold, even when the median-density viability criterion passes.
+Phase-specific tests cover configuration freezes, graph opportunity,
+bootstrap failure handling, motif support, confirmatory statistics,
+provenance, and protocol integrity.
 
 The exact original Phase 2 heatmap and lightweight scientific outputs are
 archived under `results/baselines/phase2_365b9697fd28/`. PNG checksums are

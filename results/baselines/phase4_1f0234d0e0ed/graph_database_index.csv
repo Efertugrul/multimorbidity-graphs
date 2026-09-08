@@ -1,0 +1,95 @@
+graph_id,geography_code,geography,ses_category,selected_edge_count,eligible_dyad_count
+2023_01_education_binary_higher,1,Alabama,higher,8,45
+2023_01_education_binary_lower,1,Alabama,lower,16,45
+2023_02_education_binary_higher,2,Alaska,higher,9,45
+2023_02_education_binary_lower,2,Alaska,lower,7,36
+2023_04_education_binary_higher,4,Arizona,higher,11,45
+2023_04_education_binary_lower,4,Arizona,lower,7,45
+2023_05_education_binary_higher,5,Arkansas,higher,11,45
+2023_05_education_binary_lower,5,Arkansas,lower,13,45
+2023_06_education_binary_higher,6,California,higher,9,45
+2023_06_education_binary_lower,6,California,lower,6,44
+2023_08_education_binary_higher,8,Colorado,higher,8,45
+2023_08_education_binary_lower,8,Colorado,lower,10,40
+2023_09_education_binary_higher,9,Connecticut,higher,7,45
+2023_09_education_binary_lower,9,Connecticut,lower,9,42
+2023_10_education_binary_higher,10,Delaware,higher,10,45
+2023_10_education_binary_lower,10,Delaware,lower,10,43
+2023_12_education_binary_higher,12,Florida,higher,11,45
+2023_12_education_binary_lower,12,Florida,lower,14,45
+2023_13_education_binary_higher,13,Georgia,higher,9,45
+2023_13_education_binary_lower,13,Georgia,lower,16,45
+2023_15_education_binary_higher,15,Hawaii,higher,4,45
+2023_15_education_binary_lower,15,Hawaii,lower,5,43
+2023_16_education_binary_higher,16,Idaho,higher,6,45
+2023_16_education_binary_lower,16,Idaho,lower,12,43
+2023_17_education_binary_higher,17,Illinois,higher,6,45
+2023_17_education_binary_lower,17,Illinois,lower,7,39
+2023_18_education_binary_higher,18,Indiana,higher,14,45
+2023_18_education_binary_lower,18,Indiana,lower,14,45
+2023_19_education_binary_higher,19,Iowa,higher,9,45
+2023_19_education_binary_lower,19,Iowa,lower,12,45
+2023_20_education_binary_higher,20,Kansas,higher,9,45
+2023_20_education_binary_lower,20,Kansas,lower,9,45
+2023_22_education_binary_higher,22,Louisiana,higher,8,45
+2023_22_education_binary_lower,22,Louisiana,lower,16,45
+2023_23_education_binary_higher,23,Maine,higher,13,45
+2023_23_education_binary_lower,23,Maine,lower,15,45
+2023_24_education_binary_higher,24,Maryland,higher,9,45
+2023_24_education_binary_lower,24,Maryland,lower,11,45
+2023_25_education_binary_higher,25,Massachusetts,higher,12,45
+2023_25_education_binary_lower,25,Massachusetts,lower,8,43
+2023_26_education_binary_higher,26,Michigan,higher,11,45
+2023_26_education_binary_lower,26,Michigan,lower,11,45
+2023_27_education_binary_higher,27,Minnesota,higher,4,45
+2023_27_education_binary_lower,27,Minnesota,lower,13,45
+2023_28_education_binary_higher,28,Mississippi,higher,8,45
+2023_28_education_binary_lower,28,Mississippi,lower,9,36
+2023_29_education_binary_higher,29,Missouri,higher,11,45
+2023_29_education_binary_lower,29,Missouri,lower,10,45
+2023_30_education_binary_higher,30,Montana,higher,7,45
+2023_30_education_binary_lower,30,Montana,lower,12,45
+2023_31_education_binary_higher,31,Nebraska,higher,12,45
+2023_31_education_binary_lower,31,Nebraska,lower,10,45
+2023_33_education_binary_higher,33,New Hampshire,higher,7,45
+2023_33_education_binary_lower,33,New Hampshire,lower,13,45
+2023_34_education_binary_higher,34,New Jersey,higher,6,45
+2023_34_education_binary_lower,34,New Jersey,lower,8,45
+2023_35_education_binary_higher,35,New Mexico,higher,6,44
+2023_35_education_binary_lower,35,New Mexico,lower,6,35
+2023_36_education_binary_higher,36,New York,higher,5,45
+2023_36_education_binary_lower,36,New York,lower,13,45
+2023_37_education_binary_higher,37,North Carolina,higher,8,45
+2023_37_education_binary_lower,37,North Carolina,lower,13,42
+2023_38_education_binary_higher,38,North Dakota,higher,11,45
+2023_38_education_binary_lower,38,North Dakota,lower,9,44
+2023_39_education_binary_higher,39,Ohio,higher,13,45
+2023_39_education_binary_lower,39,Ohio,lower,13,45
+2023_40_education_binary_higher,40,Oklahoma,higher,13,45
+2023_40_education_binary_lower,40,Oklahoma,lower,10,45
+2023_41_education_binary_higher,41,Oregon,higher,12,45
+2023_41_education_binary_lower,41,Oregon,lower,8,43
+2023_44_education_binary_higher,44,Rhode Island,higher,9,45
+2023_44_education_binary_lower,44,Rhode Island,lower,8,44
+2023_45_education_binary_higher,45,South Carolina,higher,11,45
+2023_45_education_binary_lower,45,South Carolina,lower,16,45
+2023_46_education_binary_higher,46,South Dakota,higher,5,45
+2023_46_education_binary_lower,46,South Dakota,lower,6,45
+2023_47_education_binary_higher,47,Tennessee,higher,13,45
+2023_47_education_binary_lower,47,Tennessee,lower,17,45
+2023_48_education_binary_higher,48,Texas,higher,7,45
+2023_48_education_binary_lower,48,Texas,lower,13,45
+2023_49_education_binary_higher,49,Utah,higher,8,45
+2023_49_education_binary_lower,49,Utah,lower,14,45
+2023_50_education_binary_higher,50,Vermont,higher,10,45
+2023_50_education_binary_lower,50,Vermont,lower,9,44
+2023_51_education_binary_higher,51,Virginia,higher,8,45
+2023_51_education_binary_lower,51,Virginia,lower,14,45
+2023_53_education_binary_higher,53,Washington,higher,12,45
+2023_53_education_binary_lower,53,Washington,lower,14,45
+2023_54_education_binary_higher,54,West Virginia,higher,13,45
+2023_54_education_binary_lower,54,West Virginia,lower,14,45
+2023_55_education_binary_higher,55,Wisconsin,higher,11,45
+2023_55_education_binary_lower,55,Wisconsin,lower,12,45
+2023_56_education_binary_higher,56,Wyoming,higher,9,45
+2023_56_education_binary_lower,56,Wyoming,lower,6,42

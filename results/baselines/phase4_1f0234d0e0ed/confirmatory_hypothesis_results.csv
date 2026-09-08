@@ -1,0 +1,7 @@
+analysis_set,family_order,hypothesis_id,motif_id,expected_enrichment,direction_sign,state_pair_count,effect_lower_minus_higher,studentized_statistic,oriented_studentized_statistic,one_sided_p_value,test_status,holm_adjusted_p_value,p_value_mcse,direction_concordant,meets_statistical_rule,decision_eligible,replicated
+primary_2023_eligible,1,H1,motif_a79cab0e1b2c2fbf,higher,-1,47,-0.04489594918720544,-0.4469956092992292,0.4469956092992292,0.26384,tested,0.26384,0.001393658689923756,True,False,True,False
+primary_2023_eligible,2,H2,motif_eeb4d747c66beaa4,higher,-1,47,-0.1705294072987603,-1.6606687604257258,1.6606687604257258,0.05308,tested,0.10616,0.0007089606025725266,True,False,True,False
+primary_2023_eligible,3,H3,motif_07019d963bc595b3,lower,1,47,0.2742529869830074,3.492268396546545,3.492268396546545,0.00105,tested,0.00315,0.00010241569703907697,True,True,True,True
+matched_2024_jurisdictions,1,H1,motif_a79cab0e1b2c2fbf,higher,-1,45,-0.04660590038108479,-0.44409204042452594,0.44409204042452594,0.26384,tested,0.26384,0.001393658689923756,True,False,False,False
+matched_2024_jurisdictions,2,H2,motif_eeb4d747c66beaa4,higher,-1,45,-0.1761652501243521,-1.6429831740237093,1.6429831740237093,0.05309,tested,0.10618,0.0007090236378288103,True,False,False,False
+matched_2024_jurisdictions,3,H3,motif_07019d963bc595b3,lower,1,45,0.2422829885078041,3.079937047738815,3.079937047738815,0.00354,tested,0.010620000000000001,0.00018781555846095392,True,True,False,False
