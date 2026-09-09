@@ -1,0 +1,648 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\geometry{margin=1in}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+\setlist{nosep}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\brfss}{\textsc{BRFSS}}
+\newcommand{\gspan}{\textsc{gSpan}}
+\newcommand{\phiboot}{P_{\mathrm{boot}}(\phi \ge 0.12)}
+
+\title{Reproducible Multimorbidity Network Motifs Across Socioeconomic
+Populations: Independent-Year Replication in BRFSS}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\textbf{Background:}
+Multimorbidity is commonly summarized using disease prevalence, condition
+counts, or pairwise associations, potentially obscuring recurrent
+multi-disease structures across populations.
+
+\textbf{Objective:}
+To develop a survey-aware, bootstrap-stabilized framework for mining
+multimorbidity network motifs and prospectively test their independent-year
+reproducibility within the Behavioral Risk Factor Surveillance System
+(\brfss).
+
+\textbf{Methods:}
+We used 457,670 \brfss{} 2024 records for discovery and 433,323 \brfss{} 2023
+records for replication. Undirected graphs represented jurisdiction by
+education-defined socioeconomic status (SES) strata, with 10 prespecified
+chronic conditions as nodes. Disease-pair edges required a survey-weighted
+point phi coefficient of at least 0.12 and, across 500 survey-design bootstrap
+replicates, at least 90\% probability that phi remained at or above 0.12.
+Connected, disease-labeled, non-induced motifs with three to five nodes were
+mined from 94 frozen 2024 graphs. An independent bootstrap bank evaluated
+motif robustness. Before accessing 2023 analytic data, we froze 484 robust
+motifs as structural targets and three directional SES hypotheses as a
+confirmatory family. No motif discovery was performed in 2023. Confirmatory
+inference used density-residualized within-jurisdiction contrasts, 99,999
+studentized Rademacher wild sign flips, and Holm correction.
+
+\textbf{Results:}
+The 2023 analysis included 47 paired jurisdictions, 94 graphs, and 951 stable
+edges. Of 484 frozen motifs, 448 reproduced with at least 20\% pooled support
+(92.6\%). Motif support was strongly correlated between years
+($\rho=0.914$). All three focal motifs recurred structurally, but only one of
+three SES hypotheses replicated. The lower-SES
+arthritis--chronic-obstructive-pulmonary-disease--current-asthma--depression--
+diabetes motif replicated (effect $=+0.2743$; one-sided $p=0.00105$; Holm
+$p=0.00315$). Two higher-SES hypotheses were direction-concordant but did not
+meet the frozen replication rule.
+
+\textbf{Conclusions:}
+A bootstrap-stabilized multimorbidity motif vocabulary showed strong
+independent-year reproduction within \brfss, while SES-associated replication
+was selective. These findings support external evaluation in distinct cohorts
+and population-health data systems.
+\end{abstract}
+
+\noindent\textbf{Keywords:}
+multimorbidity; network analysis; frequent subgraph mining; complex surveys;
+bootstrap stability; socioeconomic status; replication; BRFSS
+
+\section{Introduction}
+
+Multimorbidity is often characterized using the prevalence of individual
+conditions, the number of conditions per person, or pairwise disease
+associations. These summaries are useful but may not capture higher-order
+patterns in how disease associations are organized across populations.
+Population-specific disease-association networks offer a complementary
+representation: nodes denote chronic conditions, edges denote estimated
+within-population associations, and recurring connected subgraphs describe
+multi-disease configurations shared across populations.
+
+Frequent subgraph mining can identify these recurrent configurations, but its
+application to population health raises several methodological problems.
+Hard association thresholds can admit sampling-sensitive edges; multi-edge
+motifs may be less stable than their constituent edges; graph density can
+mechanically inflate motif occurrence; and exploratory motif selection can
+produce optimistic evidence if the same data are treated as confirmatory.
+Complex survey data add the further requirement that weighting, strata, and
+primary sampling units be respected when estimating associations and their
+stability.
+
+We addressed these problems in a discovery and replication design. First, we
+developed and calibrated survey-weighted multimorbidity graphs using
+\brfss{} 2024, stabilized their edges with a survey-design bootstrap, mined
+recurrent motifs, and evaluated motif robustness and density sensitivity.
+Second, before accessing 2023 analytic data, we froze the robust 2024 motif
+vocabulary and three directional SES hypotheses. We then evaluated those
+targets prospectively in \brfss{} 2023 without rerunning motif discovery.
+\brfss{} 2023 therefore provides independent-year replication within the same
+surveillance system, not external cohort validation.
+
+\section{Methods}
+
+\subsection{Data source and study populations}
+
+\brfss{} is a repeated cross-sectional survey of noninstitutionalized adults
+in the United States. The discovery analysis used 457,670 records from 2024,
+and the replication analysis used 433,323 records from 2023. Survey design
+variables included the final weight (\texttt{\_LLCPWT}), stratum
+(\texttt{\_STSTR}), and primary sampling unit (\texttt{\_PSU}).
+
+Each graph represented a jurisdiction by SES stratum rather than an
+individual. Candidate jurisdictions were the 50 states and District of
+Columbia; territories were excluded. A population stratum required at least
+1,000 unweighted respondents, and both education strata had to be eligible for
+a jurisdiction to enter paired analyses. The final discovery and replication
+databases each included 47 paired jurisdictions and 94 graphs. Under the
+frozen 2023 rules, District of Columbia and Nevada failed paired sample-size
+eligibility, while Kentucky and Pennsylvania had no reporting data.
+
+SES was defined using \texttt{\_EDUCAG}. The lower-education group comprised
+respondents who did not graduate high school or graduated high school
+(codes 1--2). The higher-education group comprised respondents who attended
+college or technical school or graduated from college or technical school
+(codes 3--4). Missing or unknown education values were excluded from the SES
+domains. Population registries reported both unweighted sample size and Kish
+effective sample size.
+
+\subsection{Chronic-condition nodes}
+
+The node set was frozen at 10 binary chronic-condition indicators:
+ischemic heart disease (IHD), stroke, current asthma, skin cancer, other
+cancer, chronic obstructive pulmonary disease (COPD), depressive disorder,
+kidney disease, arthritis, and diabetes. Year-specific source variables and
+coding rules were harmonized through a versioned condition registry. A node
+required at least 500 valid observations and 30 cases within a population
+stratum.
+
+With 10 nodes, a complete undirected graph contains at most
+\begin{equation}
+  {10 \choose 2}=45
+\end{equation}
+disease pairs. The actual number of eligible dyads could be lower because each
+pair required at least 500 complete observations, at least 30 cases of each
+condition, and at least 10 unweighted co-occurrences.
+
+\subsection{Survey-weighted disease-association graphs}
+
+For binary disease indicators $A$ and $B$, we estimated a survey-weighted phi
+coefficient within each jurisdiction by SES population. Let
+$\widehat{p}_{11,w}$ denote weighted joint prevalence and
+$\widehat{p}_{1+,w}$ and $\widehat{p}_{+1,w}$ denote weighted marginal
+prevalences. Then
+\begin{equation}
+  \phi_w =
+  \frac{
+    \widehat{p}_{11,w}
+    - \widehat{p}_{1+,w}\widehat{p}_{+1,w}
+  }{
+    \sqrt{
+      \widehat{p}_{1+,w}(1-\widehat{p}_{1+,w})
+      \widehat{p}_{+1,w}(1-\widehat{p}_{+1,w})
+    }
+  }.
+\end{equation}
+Phi is the Pearson correlation for two binary variables and is symmetric, so
+the resulting graph was undirected. Geography and SES were graph metadata, not
+nodes. An edge represented a sufficiently strong positive statistical
+association in a population; it did not represent causation, direction,
+disease progression, or a biological pathway.
+
+\subsection{Survey bootstrap and frozen edge rule}
+
+Edge stability was estimated using 500 survey-design bootstrap replicates.
+The procedure did not independently resample respondents and did not resample
+the 45 disease pairs. Instead, primary sampling units were resampled within
+strata to form replicate survey weights. All eligible disease-pair phi
+coefficients were recalculated under each replicate-weight realization, using
+the same state-level replicate design for both SES domains.
+
+For edge $e$, selection stability was
+\begin{equation}
+  \widehat{P}_{\mathrm{boot},e}(\phi \ge 0.12)
+  =
+  \frac{1}{500}
+  \sum_{b=1}^{500}
+  \mathbb{I}\!\left(\phi_e^{(b)} \ge 0.12\right).
+\end{equation}
+The final graph admitted an edge only when
+\begin{equation}
+  \boxed{
+    \phi_{\mathrm{point}} \ge 0.12
+    \quad\land\quad
+    P_{\mathrm{boot}}(\phi \ge 0.12) \ge 0.90
+  }.
+  \label{eq:stable-edge}
+\end{equation}
+Every point-eligible dyad had to produce all 500 valid bootstrap estimates.
+A failure made that population graph unusable and excluded the corresponding
+paired jurisdiction.
+
+\subsection{Calibration of the graph definition}
+
+Graph calibration compared competing definitions rather than applying
+sequential filters. Candidate rules included weighted phi thresholds of 0.08
+and 0.12 and an age/sex-adjusted survey-logistic model of the form
+\begin{equation}
+  \operatorname{logit}\!\left\{P(B=1)\right\}
+  =
+  \beta_0+\beta_1 A+\boldsymbol{\beta}_2^\mathsf{T}\mathrm{age}
+  +\beta_3\mathrm{sex}.
+\end{equation}
+The disease-pair odds ratio was $\exp(\beta_1)$. Positive adjusted
+associations required a lower 95\% confidence bound above one and
+within-graph Benjamini--Hochberg $q\le 0.05$. Forward and reverse disease
+orientations were recorded because separate weighted logistic fits need not
+be numerically identical. The adjusted rule served as a calibration and
+concordance analysis; it was not part of the final edge filter.
+
+The adjusted definition produced graphs that were too dense for useful
+subgraph mining, with a median of approximately 31 of 45 possible edges.
+The raw phi threshold of 0.12 produced substantially more moderate topology,
+with approximately 18 edges per graph before stability filtering. These
+results motivated Equation~\ref{eq:stable-edge} as the frozen graph
+definition.
+
+\subsection{Frequent subgraph mining}
+
+The 94 frozen 2024 graphs were mined with \gspan. Motifs were connected,
+disease-labeled, undirected, and non-induced, with three to five nodes.
+Non-induced occurrence meant that all motif edges had to be present while
+additional host-graph edges among motif nodes were allowed. Pooled support
+thresholds were 10, 19, and 29 graphs, corresponding approximately to 10\%,
+20\%, and 30\% of the 94-graph database. The primary discovery threshold was
+20\%.
+
+Support was opportunity-aware. A jurisdiction entered a motif's support
+denominator only when every required motif dyad was eligible in both SES
+graphs. At least 40 paired jurisdictions were required. Canonical disease and
+edge order produced deterministic motif identifiers. To characterize
+redundancy, we also identified occurrence-equivalence classes, closed motifs,
+and maximal motifs.
+
+\subsection{Motif robustness}
+
+The primary robustness analysis used the frozen motif vocabulary and an
+independent 500-replicate survey-bootstrap evaluation bank, distinct from the
+bank that selected stable edges. Only edges already admitted to the frozen
+stable graph were eligible in this analysis. A frozen edge could disappear
+when its replicate phi fell below 0.12, but a previously rejected edge could
+not enter. This estimand assessed joint stability of the graph structures
+actually selected for analysis.
+
+A secondary raw-threshold sensitivity allowed any eligible disease pair with
+replicate phi at or above 0.12 to enter a replicate graph. This analysis
+tested sensitivity to unrestricted threshold crossing and was not treated as
+the primary motif-stability analysis.
+
+\subsection{Density control and exploratory 2024 SES analysis}
+
+Because denser graphs mechanically contain more subgraphs, motif occurrence
+was standardized for graph-specific opportunity and edge count. For an
+evaluable motif with $r$ required edges in a graph with $N$ eligible dyads and
+$m$ selected edges, the fixed-edge-count expected occurrence probability was
+\begin{equation}
+  P_{\mathrm{null}}(\mathrm{occurrence})
+  =
+  \frac{{N-r \choose m-r}}{{N \choose m}},
+  \qquad m\ge r.
+\end{equation}
+The density residual was observed occurrence minus expected occurrence. A
+degree-preserving randomization constrained to eligible dyads served as a
+sensitivity analysis.
+
+Exploratory SES contrasts compared lower- and higher-education residuals
+within jurisdiction. A common lower/higher label swap was applied within each
+motif-evaluable state, and maxT adjustment controlled multiplicity across the
+motif screen. These analyses described structural SES contrasts rather than
+causal effects.
+
+\subsection{Prospective 2023 replication}
+
+The Phase 4 protocol, graph rules, 484-motif robust vocabulary, and three
+directional SES hypotheses were frozen and tagged before 2023 analytic data
+were accessed. The 2023 workflow reconstructed graphs under
+Equation~\ref{eq:stable-edge}, evaluated every frozen motif without rerunning
+\gspan, and retained all 484 motifs in the structural-reproduction
+denominator. A motif reproduced when pooled support was at least 20\% among at
+least 40 paired, motif-evaluable jurisdictions.
+
+The confirmatory effect was the lower-minus-higher density-residual
+difference. Thus negative effects favored the two higher-SES hypotheses and a
+positive effect favored the lower-SES hypothesis. The test statistic was the
+studentized, equally weighted mean state contrast. Primary inference used
+99,999 common Rademacher sign vectors and one-sided alternatives in frozen
+directions. Holm correction controlled the fixed three-hypothesis family at
+$\alpha=0.05$. The sign-flip procedure is finite-sample exact only under
+componentwise sign symmetry or within-state lower/higher exchangeability; its
+stated justification was an asymptotic studentized wild-bootstrap argument
+for a mean jurisdiction-level contrast. The matched 2024-jurisdiction subset
+was descriptive and could not alter primary replication decisions.
+
+\subsection{Reproducibility and audit trail}
+
+The frozen protocol identifier was
+\texttt{phase4\_2023\_cc5bbcc08283}. The original execution tag was
+\texttt{phase4-2023-replication-v1.0.0}. The first 2023 execution stopped
+during pre-harmonization runtime validation because YAML parsed Survey
+package version 4.5 as a numeric scalar while the runtime returned the same
+version as text. Deviation \texttt{PH4-D001} documented and authorized string
+normalization for version comparison only. The original protocol remained
+unchanged; no respondent values had been harmonized and no graph, motif, or
+confirmatory result existed when the deviation was defined. The completed run
+used execution tag \texttt{phase4-2023-replication-v1.0.1}. Tests, source
+checks, manifests, and archive checksums were retained.
+
+\section{Results}
+
+\subsection{Edge stability and structural feasibility in 2024}
+
+In 2024, 1,733 disease pairs met the raw point-phi threshold of 0.12. Of
+these, 1,057 survived the 0.90 bootstrap-selection criterion, for 61.0\% raw
+edge retention. The Phase 2.6 calibration protocol had prespecified an 80\%
+retention criterion, so this result was formally recorded as
+\textsc{HOLD} on retention. Instability was concentrated near the hard
+threshold: 560 of 676 rejected raw edges had point phi below 0.15.
+
+The retained graph database nevertheless remained structurally useful. Across
+94 graphs, the mean stable edge count was 11.24 and the median was 11;
+92 graphs had at least five edges, 90 had a connected component containing at
+least five nodes, and 85 contained at least one triangle. The calibration
+decision was therefore \textsc{HOLD} on the prespecified retention criterion
+and \textsc{GO} on structural feasibility.
+
+\subsection{2024 motif discovery and robustness}
+
+\gspan{} identified 1,098 motifs with at least 10\% pooled support, 542 at the
+primary 20\% support threshold, and 342 at 30\% support. The full discovered
+set comprised 448 graph-occurrence-equivalence classes, 518 closed motifs,
+and 114 maximal motifs. These counts describe a redundant computational
+vocabulary rather than independent epidemiologic phenomena.
+
+Among the 542 primary-support motifs, 499 had independent-bootstrap
+$P_{\mathrm{boot}}(\mathrm{support}\ge20\%)\ge0.80$, and 484 (89.3\%) had
+probability at least 0.90. Across frozen-edge \gspan{} reruns, median retention
+of the baseline motif set was 95.0\%, with a 2.5th percentile of 88.7\%.
+These 484 robust motifs, representing 299 robust occurrence families, became
+the frozen 2023 structural-replication vocabulary.
+
+The raw-threshold sensitivity produced a median of 4,999.5 motifs at 20\%
+support, including a median of 4,457.5 motifs outside the frozen vocabulary.
+Median motif-set Jaccard similarity with the frozen vocabulary was 0.108.
+Thus unrestricted threshold crossing substantially altered the motif
+landscape, supporting the stable-edge filter as a substantive part of the
+analysis definition.
+
+\subsection{Density diagnostics and exploratory 2024 SES signals}
+
+Every retained motif had a positive support Z-score relative to the
+eligible-dyad fixed-edge-count null, and 94.5\% had a positive Z-score
+relative to the degree-preserving null. Because motifs had been selected from
+the observed graphs, these null comparisons were selection-conditional
+diagnostics rather than independent validation.
+
+Exactly three motifs survived the exploratory paired maxT SES screen:
+\begin{enumerate}
+  \item \textbf{H1, higher SES:} an
+  arthritis--IHD--diabetes--kidney--other-cancer tree, occurring in 12 lower-
+  and 28 higher-SES graphs (maxT $p=0.0035$).
+  \item \textbf{H2, higher SES:} an IHD--diabetes--kidney path, occurring in
+  21 lower- and 35 higher-SES graphs (maxT $p=0.0167$).
+  \item \textbf{H3, lower SES:} an
+  arthritis--COPD--current-asthma--depression--diabetes tree, occurring in
+  26 lower- and 11 higher-SES graphs (maxT $p=0.0321$).
+\end{enumerate}
+These were the only motifs from the exploratory screen that survived the
+prespecified multiplicity procedure. Their structures and directions were
+frozen prospectively for 2023.
+
+\subsection{Independent-year structural replication in 2023}
+
+The 2023 graph database included 47 paired jurisdictions, 94 graphs, and 951
+stable edges. All point-eligible dyads completed the 500-replicate bootstrap.
+Median selected edge count was 11 in lower-SES graphs and 9 in higher-SES
+graphs; median eligible-dyad density was 25.0\% and 20.0\%, respectively.
+Table~\ref{tab:year-summary} summarizes discovery and replication databases.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Discovery and independent-year replication summary.}
+  \label{tab:year-summary}
+  \begin{tabularx}{\textwidth}{Yrr}
+    \toprule
+    Measure & 2024 discovery & 2023 replication \\
+    \midrule
+    Raw annual records & 457,670 & 433,323 \\
+    Paired jurisdictions & 47 & 47 \\
+    Population graphs & 94 & 94 \\
+    Stable edges & 1,057 & 951 \\
+    Median stable edges per graph & 11 & 10 \\
+    Motifs at primary 20\% support & 542 & not rediscovered \\
+    Frozen robust motif targets & 484 & 484 evaluated \\
+    Structurally reproduced motifs & not applicable & 448 (92.6\%) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Of the 484 frozen motifs, 448 reproduced with at least 20\% pooled support:
+\begin{equation}
+  \frac{448}{484}=92.6\%.
+\end{equation}
+The Spearman correlation between 2024 and 2023 pooled support was
+\begin{equation}
+  \rho=0.914.
+\end{equation}
+Median absolute support difference was 6.38 percentage points. All 42
+three-node motifs reproduced, compared with 124 of 134 four-node motifs and
+282 of 308 five-node motifs. Every motif had 46 or 47 evaluable paired
+jurisdictions. All three focal confirmatory motifs met the structural
+reproduction criterion in 2023.
+
+\subsection{Confirmatory 2023 SES replication}
+
+All three 2023 effects were concordant with their frozen directions, but only
+H3 met the directional Holm-corrected replication rule
+(Table~\ref{tab:confirmatory}).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Frozen SES hypotheses and prospective 2023 replication results.
+  The 2024 lower/higher columns show raw graph occurrence; inference was
+  density residualized.}
+  \label{tab:confirmatory}
+  \scriptsize
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{@{}lcrrrrrrl@{}}
+    \toprule
+    ID & Frozen direction & 2024 L/H & 2024 maxT $p$ &
+    2023 support & 2023 effect & 2023 $p$ & Holm $p$ & Call \\
+    \midrule
+    H1 & Higher & 12/28 & 0.0035 & 34/94 & $-0.0449$ &
+    0.26384 & 0.26384 & No \\
+    H2 & Higher & 21/35 & 0.0167 & 47/94 & $-0.1705$ &
+    0.05308 & 0.10616 & No \\
+    H3 & Lower & 26/11 & 0.0321 & 27/94 & $+0.2743$ &
+    0.00105 & 0.00315 & Yes \\
+    \bottomrule
+  \end{tabular}
+  }
+\end{table}
+
+H1 remained direction-concordant but failed replication
+(effect $=-0.0449$; one-sided $p=0.26384$; Holm $p=0.26384$). H2 also
+remained direction-concordant but failed the frozen rule
+(effect $=-0.1705$; one-sided $p=0.05308$; Holm $p=0.10616$). H2 was not
+classified as ``near replication.'' H3 replicated
+(effect $=+0.2743$; one-sided $p=0.00105$; Holm $p=0.00315$).
+
+The descriptive 45-jurisdiction matched sensitivity analysis had the same
+Holm-threshold pattern, with H3 alone meeting the statistical threshold, and
+could not alter primary decisions. No aggregate study-level success gate was
+preregistered. The confirmatory SES result was therefore one of three
+hypotheses replicated.
+
+\begin{figure}[htbp]
+  \centering
+  \fbox{\parbox{0.94\linewidth}{
+    \textbf{Panel A: Analysis pipeline.}
+    BRFSS respondents $\rightarrow$ jurisdiction by education-SES graphs
+    $\rightarrow$ survey-weighted phi $\rightarrow$ survey bootstrap
+    $\rightarrow$ stable edges $\rightarrow$ \gspan{} motifs
+    $\rightarrow$ frozen 2024 targets $\rightarrow$ 2023 replication.
+  }}
+
+  \vspace{0.7em}
+  \fbox{\parbox{0.94\linewidth}{
+    \textbf{Panel B: Motif support replication.}
+    Scatterplot of 2024 versus 2023 pooled support for all 484 frozen motifs,
+    with the 20\% reproduction boundary, 448 reproduced motifs, and
+    Spearman $\rho=0.914$.
+  }}
+
+  \vspace{0.7em}
+  \fbox{\parbox{0.94\linewidth}{
+    \textbf{Panel C: Confirmatory SES hypotheses.}
+    Three motif diagrams with 2023 effect estimates and Holm-adjusted
+    p-values, visually distinguishing the replicated H3 contrast from the
+    non-replicated H1 and H2 contrasts.
+  }}
+  \caption{Proposed main figure for the discovery-to-replication study
+  design and findings. Boxes are placeholders for final vector graphics.}
+  \label{fig:main}
+\end{figure}
+
+\section{Discussion}
+
+This study's principal methodological finding is that a survey-aware,
+bootstrap-stabilized multimorbidity motif vocabulary reproduced strongly in a
+different annual \brfss{} sample. More than 92\% of the 484 frozen motifs
+again met the prespecified pooled-support criterion, and the support ordering
+was highly consistent across years. This result indicates that recurrent
+multimorbidity association structure was not confined to the 2024 discovery
+sample.
+
+The SES findings were narrower. All three focal structures recurred in 2023,
+and their density-residualized effects retained the 2024 directions, but only
+the lower-SES H3 contrast met the frozen Holm-corrected criterion. The H3
+structure linked arthritis, COPD, current asthma, depressive disorder, and
+diabetes. Its replication is compatible with a recurring concentration of
+musculoskeletal, respiratory, mental-health, and metabolic association
+structure in lower-education populations. However, the graph design cannot
+determine whether this pattern reflects causal effects of education, shared
+risk factors, health-care access, measurement, or other mechanisms.
+
+The two higher-SES hypotheses illustrate the value of prospective
+replication. Both remained direction-concordant, and H2 retained substantial
+pooled structural support, but neither met its frozen confirmatory rule.
+Treating H2 as a positive result because its unadjusted one-sided p-value was
+close to 0.05 would violate the preregistered familywise decision procedure.
+The appropriate conclusion is selective, one-of-three SES hypothesis
+replication rather than universal confirmation of the exploratory 2024
+screen.
+
+The calibration analyses also show why representation stability matters.
+A permissive or adjusted edge rule produced dense graphs, while unrestricted
+replicate threshold crossing generated thousands of alternative motifs.
+Requiring both a minimum point phi and 90\% bootstrap-selection stability
+yielded a sparser graph database that remained structurally rich. The formal
+Phase 2.6 retention failure remains important: many raw 0.12 edges were
+sampling-sensitive. The graph database became useful not because the hard
+threshold was intrinsically stable, but because the stability filter removed
+many borderline edges.
+
+\section{Limitations}
+
+First, \brfss{} is self-reported and repeated cross-sectional, so disease
+misclassification, nonresponse, and changes in survey administration may
+affect estimated associations. Second, graph edges are statistical pairwise
+associations, not causal links or evidence that an individual jointly has all
+diseases in a motif. Third, the final phi graphs were not age/sex
+standardized. The age/sex-adjusted logistic model was a competing calibration
+definition and concordance check, not the final graph estimator.
+
+Fourth, graph-specific density standardization addresses mechanical
+subgraph-frequency differences but cannot eliminate all confounding or
+differences in edge-detection precision caused by prevalence and sample size.
+Fifth, edge-selection bootstrap stability does not fully propagate the
+uncertainty of the entire graph-selection pipeline into confirmatory
+p-values. Sixth, the Rademacher procedure relies on sign-symmetry for exact
+finite-sample inference and otherwise on an asymptotic wild-bootstrap
+argument.
+
+Seventh, the 2023 analysis was independent-year replication within \brfss,
+not validation in a different cohort or data-generating environment. Eighth,
+the analysis included 47 paired jurisdictions per year and a prespecified
+10-condition node set, which limits generalizability to other diseases and
+geographies. Finally, frequent-subgraph outputs are nested and redundant;
+raw motif counts should not be interpreted as counts of independent
+epidemiologic phenomena.
+
+\section{Conclusion}
+
+Recurrent multimorbidity network structure was highly reproducible across
+two \brfss{} years after survey-design bootstrap stabilization. One
+lower-SES five-condition configuration showed confirmatory temporal
+replication, while two higher-SES signals did not meet their frozen
+familywise criteria. These findings support evaluating the frozen structures
+in independent cohorts and other population-health data systems to test
+portability beyond \brfss.
+
+\section*{Data and code availability}
+
+\brfss{} annual data are publicly available from the US Centers for Disease
+Control and Prevention. Analysis code, frozen protocols, checksummed result
+archives, and audit records are available at
+\url{https://github.com/Efertugrul/multimorbidity-graphs}.
+
+\appendix
+
+\section{Supplementary calibration record}
+
+The initial five-state prototype established feasibility but produced
+relatively dense graphs. Expansion to all eligible states and District of
+Columbia compared weighted phi thresholds and an age/sex-adjusted
+survey-logistic graph definition. The adjusted definition had a median of
+approximately 31 edges among 45 possible dyads and was retained only as a
+calibration and concordance analysis. A raw phi threshold of 0.12 produced
+approximately 18 edges per graph before stability filtering.
+
+The 2024 raw-edge stability analysis retained 1,057 of 1,733 raw
+phi-at-least-0.12 edges. Because this 61.0\% retention did not meet the
+prespecified 80\% criterion, the calibration record was \textsc{HOLD}.
+Structural diagnostics separately supported \textsc{GO}: nearly all graphs
+had at least five edges and a component of at least five nodes, and 85 of 94
+graphs contained triangles. This distinction was frozen before motif mining.
+
+\section{Supplementary robustness and null-model interpretation}
+
+The primary motif bootstrap conditioned on the frozen stable-edge universe:
+selected edges could disappear, but rejected edges could not enter. This
+estimand tested the joint robustness of motifs in the chosen graph
+representation. The unrestricted raw-threshold sensitivity answered a
+different question and showed a much less stable motif universe. Neither
+analysis implemented a nested outer bootstrap that re-estimated the 0.90
+selection-stability filter within every replicate.
+
+Fixed-edge-count and degree-preserving null results were selection-conditional
+because the motifs had been discovered in the observed graphs. They were used
+to assess whether recurrence was trivially explained by graph density, not as
+independent hypothesis tests. The strongest validation evidence was the
+independent evaluation bootstrap followed by the prospectively frozen 2023
+replication.
+
+\section{Supplementary reproducibility identifiers}
+
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+  \toprule
+  Item & Identifier \\
+  \midrule
+  Frozen Phase 4 protocol & \texttt{phase4\_2023\_cc5bbcc08283} \\
+  Frozen protocol release & \texttt{phase4-2023-replication-v1.0.0} \\
+  Documented execution deviation & \texttt{PH4-D001} \\
+  Completed execution release & \texttt{phase4-2023-replication-v1.0.1} \\
+  2023 configuration digest & \texttt{1f0234d0e0ed} \\
+  Result archive & \texttt{results/baselines/phase4\_1f0234d0e0ed} \\
+  Result release & \texttt{phase4-2023-results-v1.0.0} \\
+  \bottomrule
+\end{tabularx}
+
+\end{document}
